@@ -74,8 +74,7 @@ $students = db()->fetchAll(
     "SELECT s.id, s.name, s.roll_number, s.batch,
             c.name as course_name,
             p.name as parent_name, p.relation,
-            p.whatsapp as parent_wa, p.phone as parent_phone,
-            p.father_name as father_name
+            p.whatsapp as parent_wa, p.phone as parent_phone
      FROM students s
      LEFT JOIN courses c ON s.course_id = c.id
      LEFT JOIN parents p ON p.student_id = s.id
@@ -146,7 +145,7 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                      data-roll="<?= sanitize($s['roll_number']) ?>"
                      data-course="<?= sanitize($s['course_name'] ?? '') ?>"
                      data-parent="<?= sanitize($s['parent_name'] ?? '') ?>"
-                     data-father="<?= sanitize($s['father_name'] ?? $s['parent_name'] ?? '') ?>"
+                     data-father="<?= sanitize($s['parent_name'] ?? '') ?>"
                      data-batch="<?= sanitize($s['batch'] ?? '') ?>"
                      data-search="<?= strtolower(sanitize($s['name'] . ' ' . $s['roll_number'] . ' ' . $s['course_name'] . ' ' . $s['batch'])) ?>"
                      onclick="selectStudent(this)"

@@ -15,14 +15,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tplTitle = sanitize($_POST['tpl_title'] ?? '');
         $tplBody  = sanitize($_POST['tpl_body']  ?? '');
         if ($tplTitle && $tplBody) {
-            $existing = db()->fetchOne("SELECT value FROM settings WHERE key_name='wa_templates'");
+            $existing = db()->fetchOne("SELECT setting_value as value FROM settings WHERE setting_key='wa_templates'");
             $templates = $existing ? json_decode($existing['value'], true) : [];
             $templates[] = ['title' => $tplTitle, 'body' => $tplBody, 'custom' => true];
             $val = json_encode($templates, JSON_UNESCAPED_UNICODE);
             if ($existing) {
-                db()->execute("UPDATE settings SET value=? WHERE key_name='wa_templates'", [$val]);
+                db()->execute("UPDATE settings SET setting_value=? WHERE setting_key='wa_templates'", [$val]);
             } else {
-                db()->execute("INSERT INTO settings (key_name,value) VALUES ('wa_templates',?)", [$val]);
+                db()->execute("INSERT INTO settings (setting_key,setting_value) VALUES ('wa_templates',?)", [$val]);
             }
             flashMessage('success', "Template \"$tplTitle\" saved.");
         }
@@ -32,11 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Delete custom template
     if ($action === 'delete_template') {
         $idx = (int)($_POST['tpl_index'] ?? -1);
-        $existing = db()->fetchOne("SELECT value FROM settings WHERE key_name='wa_templates'");
+        $existing = db()->fetchOne("SELECT setting_value as value FROM settings WHERE setting_key='wa_templates'");
         $templates = $existing ? json_decode($existing['value'], true) : [];
         if (isset($templates[$idx])) {
             array_splice($templates, $idx, 1);
-            db()->execute("UPDATE settings SET value=? WHERE key_name='wa_templates'", [json_encode($templates, JSON_UNESCAPED_UNICODE)]);
+            db()->execute("UPDATE settings SET setting_value=? WHERE setting_key='wa_templates'", [json_encode($templates, JSON_UNESCAPED_UNICODE)]);
             flashMessage('success', 'Template deleted.');
         }
         header('Location: whatsapp.php'); exit;
@@ -103,7 +103,7 @@ $builtinTemplates = [
 ];
 
 // Load custom saved templates
-$customRow = db()->fetchOne("SELECT value FROM settings WHERE key_name='wa_templates'");
+$customRow = db()->fetchOne("SELECT setting_value as value FROM settings WHERE setting_key='wa_templates'");
 $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
 ?>
 

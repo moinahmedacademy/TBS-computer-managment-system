@@ -569,36 +569,26 @@ function sendWhatsApp() {
         class_timing:   document.getElementById('waTiming').value,
     };
 
+    // Open WhatsApp
     const clean = phone.replace(/[^0-9]/g, '');
     const num   = clean.startsWith('0') ? '92' + clean.slice(1) : clean;
-    const waUrl = 'https://wa.me/' + num + '?text=' + encodeURIComponent(message);
+    window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(message), '_blank');
 
-    // Show confirmation FIRST — before opening WhatsApp so dialog is visible
-    const recipient = logData.recipient_name || phone;
-    tbsConfirm(
-        'Send this message to ' + recipient + ' via WhatsApp?',
-        function() {
-            // Open WhatsApp
-            window.open(waUrl, '_blank');
+    // Clear compose form immediately
+    clearStudent();
+    document.getElementById('waMessage').value = '';
+    document.getElementById('msgType').value   = 'custom';
+    updateCount();
 
-            // Clear compose form
-            clearStudent();
-            document.getElementById('waMessage').value = '';
-            document.getElementById('msgType').value   = 'custom';
-            updateCount();
+    // Log via AJAX then reload
+    const fd = new FormData();
+    fd.append('action', 'log');
+    Object.entries(logData).forEach(([k, v]) => fd.append(k, v));
 
-            // Log via AJAX then reload
-            const fd = new FormData();
-            fd.append('action', 'log');
-            Object.entries(logData).forEach(([k, v]) => fd.append(k, v));
-
-            fetch('whatsapp.php', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(() => location.reload())
-                .catch(() => showToast('WhatsApp opened but log failed to save.', 'warning'));
-        },
-        { type: 'info', icon: 'bi-whatsapp', yesLabel: 'Yes, Open WhatsApp', noLabel: 'Cancel' }
-    );
+    fetch('whatsapp.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(() => location.reload())
+        .catch(() => showToast('WhatsApp opened but log failed to save.', 'warning'));
 }
 
 function copyMsg() {

@@ -186,12 +186,15 @@ CREATE TABLE IF NOT EXISTS `announcements` (
 CREATE TABLE IF NOT EXISTS `whatsapp_logs` (
     `id`           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `sent_by`      INT UNSIGNED,
-    `phone`        VARCHAR(20),
-    `message`      TEXT,
-    `message_type` VARCHAR(50),
-    `status`       ENUM('pending','sent','failed') NOT NULL DEFAULT 'pending',
-    `sent_at`      DATETIME,
-    `created_at`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `phone`          VARCHAR(20),
+    `message`        TEXT,
+    `message_type`   VARCHAR(50),
+    `recipient_name` VARCHAR(150),
+    `student_roll`   VARCHAR(30),
+    `father_name`    VARCHAR(150),
+    `status`         ENUM('pending','sent','failed') NOT NULL DEFAULT 'pending',
+    `sent_at`        DATETIME,
+    `created_at`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`sent_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

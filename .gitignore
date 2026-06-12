@@ -1,0 +1,9 @@
+.env
+debug.php
+includes/config.php
+test_login.php
+admin/uploads/
+assets/uploads/students/
+secure_files/
+*.log
+.DS_Store

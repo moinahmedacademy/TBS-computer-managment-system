@@ -145,7 +145,7 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
 <div class="row g-3">
 
     <!-- ── LEFT: COMPOSE ──────────────────────────────────────────────── -->
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-lg-3">
         <div class="data-card" style="padding:1.5rem">
             <div style="font-weight:700;font-size:.95rem;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem">
                 <i class="bi bi-pencil-square" style="color:var(--accent)"></i> Compose Message
@@ -240,11 +240,11 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
         </div>
     </div>
 
-    <!-- ── RIGHT: TEMPLATES + LOG ─────────────────────────────────────── -->
-    <div class="col-12 col-lg-7">
+    <!-- ── RIGHT: TEMPLATES ─────────────────────────────────────────────── -->
+    <div class="col-12 col-lg-9">
 
         <!-- Templates -->
-        <div class="data-card mb-3" style="padding:1.25rem">
+        <div class="data-card" style="padding:1.25rem">
             <div style="font-weight:700;font-size:.88rem;margin-bottom:.85rem;display:flex;align-items:center;gap:.5rem">
                 <i class="bi bi-layout-text-window" style="color:var(--accent)"></i> Message Templates
                 <span style="font-size:.72rem;color:var(--text-muted);font-weight:400">(click to use)</span>
@@ -279,8 +279,13 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                 <?php endforeach; ?>
             </div>
         </div>
+    </div>
 
-        <!-- Sent Log -->
+</div><!-- end compose+templates row -->
+
+<!-- ── FULL-WIDTH: SENT LOG ──────────────────────────────────────────────── -->
+<div class="row g-3 mt-0">
+    <div class="col-12">
         <div class="data-card">
             <div class="data-card-header">
                 <div class="data-card-title">
@@ -290,19 +295,22 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
             </div>
 
             <!-- Delete toolbar (hidden until a row is checked) -->
-            <div id="logToolbar" style="display:none;padding:.6rem 1rem;background:rgba(239,68,68,.07);border-bottom:1px solid rgba(239,68,68,.2);display:none;align-items:center;gap:.75rem;flex-wrap:wrap">
-                <span id="selCount" style="font-size:.82rem;color:var(--text-muted)">0 selected</span>
-                <form method="POST" id="deleteLogsForm" onsubmit="return confirmDelete(this,'Delete selected log entries? This cannot be undone.')">
-                    <input type="hidden" name="action" value="delete_logs">
-                    <div id="deleteIdsContainer"></div>
-                    <button type="submit" class="btn-icon btn-icon-delete" style="width:auto;padding:.35rem .85rem;gap:.35rem;display:inline-flex;align-items:center;font-size:.8rem">
+            <form method="POST" id="deleteLogsForm"
+                  onsubmit="return confirmDelete(this,'Delete selected log entries? This cannot be undone.')">
+                <input type="hidden" name="action" value="delete_logs">
+                <div id="deleteIdsContainer"></div>
+                <div id="logToolbar" style="display:none;padding:.6rem 1rem;background:rgba(239,68,68,.07);border-bottom:1px solid rgba(239,68,68,.2);align-items:center;gap:.75rem;flex-wrap:wrap">
+                    <i class="bi bi-check2-square" style="color:#ef4444"></i>
+                    <span id="selCount" style="font-size:.82rem;color:var(--text-muted);flex:1">0 selected</span>
+                    <button type="submit" class="btn-icon btn-icon-delete"
+                            style="width:auto;padding:.35rem .9rem;gap:.4rem;display:inline-flex;align-items:center;font-size:.82rem;font-weight:500">
                         <i class="bi bi-trash"></i> Delete Selected
                     </button>
-                </form>
-            </div>
+                </div>
+            </form>
 
-            <div class="table-wrap" style="overflow-y:auto;max-height:520px">
-                <table class="table-academy" id="logTable" style="width:100%">
+            <div class="table-wrap" style="overflow-y:auto;max-height:480px">
+                <table class="table-academy" id="logTable" style="width:100%;white-space:nowrap">
                     <thead style="position:sticky;top:0;z-index:2">
                         <tr>
                             <th style="width:36px">
@@ -362,8 +370,8 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                             <span class="badge-academy badge-info" style="font-size:.68rem"><?= ucfirst($log['message_type'] ?? 'custom') ?></span>
                         </td>
                         <!-- Message preview -->
-                        <td>
-                            <div style="font-size:.75rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px"
+                        <td style="white-space:normal;max-width:240px">
+                            <div style="font-size:.75rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:230px"
                                  title="<?= sanitize($log['message'] ?? '') ?>">
                                 <?= sanitize(substr($log['message'] ?? '', 0, 55)) ?><?= strlen($log['message'] ?? '') > 55 ? '…' : '' ?>
                             </div>
@@ -398,7 +406,7 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
             </div>
         </div>
     </div>
-</div>
+</div><!-- end log row -->
 
 <!-- Custom Template Modal -->
 <div class="modal fade" id="customTplModal" tabindex="-1">

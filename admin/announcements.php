@@ -1,6 +1,7 @@
 <?php
-$pageTitle = 'Announcements';
-require_once __DIR__ . '/layout.php';
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
@@ -42,6 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     header('Location: announcements.php'); exit;
 }
+
+$pageTitle = 'Announcements';
+require_once __DIR__ . '/layout.php';
 
 $announcements = db()->fetchAll(
     "SELECT a.*, c.name as course_name FROM announcements a LEFT JOIN courses c ON a.course_id=c.id ORDER BY a.is_pinned DESC, a.created_at DESC"

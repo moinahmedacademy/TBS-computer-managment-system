@@ -1,6 +1,7 @@
-<?php
-$pageTitle = 'Settings';
-require_once __DIR__ . '/layout.php';
+﻿<?php
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
@@ -49,6 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     header('Location: settings.php'); exit;
 }
+
+$pageTitle = 'Settings';
+require_once __DIR__ . '/layout.php';
+
 
 $allowedIPs = db()->fetchAll("SELECT * FROM allowed_ips ORDER BY created_at DESC");
 $clientIP   = $_SERVER['REMOTE_ADDR'] ?? '';

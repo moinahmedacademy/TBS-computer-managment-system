@@ -1,6 +1,7 @@
-<?php
-$pageTitle = 'Courses';
-require_once __DIR__ . '/layout.php';
+﻿<?php
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
@@ -38,6 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     header('Location: courses.php'); exit;
 }
+
+$pageTitle = 'Courses';
+require_once __DIR__ . '/layout.php';
+
 
 $courses = db()->fetchAll(
     "SELECT c.*, (SELECT COUNT(*) FROM students s WHERE s.course_id=c.id AND s.status='active') as student_count

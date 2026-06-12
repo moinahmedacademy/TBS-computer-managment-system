@@ -1,6 +1,7 @@
-<?php
-$pageTitle = 'Tests';
-require_once __DIR__ . '/layout.php';
+﻿<?php
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
@@ -39,6 +40,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Location: tests.php'); exit;
 }
 
+$pageTitle = 'Tests';
+require_once __DIR__ . '/layout.php';
+
+
 $courses = db()->fetchAll("SELECT id,name FROM courses WHERE status='active' ORDER BY name");
 $tests = db()->fetchAll(
     "SELECT t.*, c.name as course_name,
@@ -66,7 +71,7 @@ $tests = db()->fetchAll(
             <tr>
                 <td style="font-weight:500"><?= sanitize($t['name']) ?></td>
                 <td style="font-size:.82rem;color:var(--text-muted)"><?= sanitize($t['course_name']) ?></td>
-                <td style="font-size:.82rem"><?= sanitize($t['subject'] ?: '—') ?></td>
+                <td style="font-size:.82rem"><?= sanitize($t['subject'] ?: 'â€”') ?></td>
                 <td>
                     <span class="badge-academy <?= $t['test_type']==='final'?'badge-danger':($t['test_type']==='monthly'?'badge-warning':'badge-info') ?>">
                         <?= ucfirst($t['test_type']) ?>
@@ -118,7 +123,7 @@ $tests = db()->fetchAll(
                 <div class="modal-body row g-3">
                     <div class="col-12">
                         <label class="form-label">Test Name *</label>
-                        <input type="text" name="name" class="form-control" required placeholder="e.g. Weekly Test – Computer Basics">
+                        <input type="text" name="name" class="form-control" required placeholder="e.g. Weekly Test â€“ Computer Basics">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Course *</label>

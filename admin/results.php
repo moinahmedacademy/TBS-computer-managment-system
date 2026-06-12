@@ -1,6 +1,7 @@
-<?php
-$pageTitle = 'Results';
-require_once __DIR__ . '/layout.php';
+﻿<?php
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
@@ -13,6 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $test = db()->fetchOne("SELECT total_marks FROM tests WHERE id=?", [$testId]);
         if (!$test) { flashMessage('danger','Invalid test.'); header('Location: results.php'); exit; }
+
+
+$pageTitle = 'Results';
+require_once __DIR__ . '/layout.php';
 
         foreach ($marks as $studentId => $obtained) {
             $studentId = (int)$studentId;
@@ -83,7 +88,7 @@ if ($testId) {
                     <option value="">Choose a test...</option>
                     <?php foreach ($tests as $t): ?>
                     <option value="<?= $t['id'] ?>" <?= $testId==$t['id']?'selected':'' ?>>
-                        <?= sanitize($t['name']) ?> – <?= sanitize($t['course_name']) ?> (<?= formatDate($t['date']) ?>)
+                        <?= sanitize($t['name']) ?> â€“ <?= sanitize($t['course_name']) ?> (<?= formatDate($t['date']) ?>)
                     </option>
                     <?php endforeach; ?>
                 </select>
@@ -170,13 +175,13 @@ if ($testId) {
                             step="0.5" placeholder="0" style="width:100px"
                             oninput="calcGrade(this)">
                     </td>
-                    <td id="pct_<?= $s['id'] ?>" style="font-weight:600;color:var(--accent)"><?= $pct ? $pct.'%' : '—' ?></td>
+                    <td id="pct_<?= $s['id'] ?>" style="font-weight:600;color:var(--accent)"><?= $pct ? $pct.'%' : 'â€”' ?></td>
                     <td id="grade_<?= $s['id'] ?>">
                         <?php if ($grade): ?>
                         <span class="grade-<?= strtolower(str_replace('+','plus',$grade)) ?>"><?= $grade ?></span>
-                        <?php else: ?><span style="color:var(--text-muted)">—</span><?php endif; ?>
+                        <?php else: ?><span style="color:var(--text-muted)">â€”</span><?php endif; ?>
                     </td>
-                    <td id="pos_<?= $s['id'] ?>" style="font-weight:600"><?= $pos ?: '—' ?></td>
+                    <td id="pos_<?= $s['id'] ?>" style="font-weight:600"><?= $pos ?: 'â€”' ?></td>
                     <td>
                         <input type="text" name="remarks[<?= $s['id'] ?>]" class="form-control" value="<?= sanitize($remark) ?>" placeholder="Optional remark" style="width:160px">
                     </td>
@@ -218,8 +223,8 @@ function calcGrade(input) {
     const obtained = parseFloat(input.value);
 
     if (isNaN(obtained) || input.value === '') {
-        document.getElementById('pct_' + sid).textContent = '—';
-        document.getElementById('grade_' + sid).innerHTML = '<span style="color:var(--text-muted)">—</span>';
+        document.getElementById('pct_' + sid).textContent = 'â€”';
+        document.getElementById('grade_' + sid).innerHTML = '<span style="color:var(--text-muted)">â€”</span>';
         return;
     }
 

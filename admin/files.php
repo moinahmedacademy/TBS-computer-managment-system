@@ -1,6 +1,7 @@
-<?php
-$pageTitle = 'Course Files';
-require_once __DIR__ . '/layout.php';
+﻿<?php
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
@@ -37,6 +38,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Location: files.php'); exit;
 }
 
+$pageTitle = 'Course Files';
+require_once __DIR__ . '/layout.php';
+
+
 $filterCourse = (int)($_GET['course'] ?? 0);
 $sql = "SELECT cf.*, c.name as course_name FROM course_files cf JOIN courses c ON cf.course_id=c.id WHERE 1=1";
 $params = [];
@@ -54,7 +59,7 @@ $fileClasses = ['pdf'=>'file-pdf','doc'=>'file-doc','docx'=>'file-doc','ppt'=>'f
 <div class="section-header">
     <div>
         <div class="section-title">Course Files (Secure)</div>
-        <div class="section-subtitle">Files stored outside public directory – IP-restricted access</div>
+        <div class="section-subtitle">Files stored outside public directory â€“ IP-restricted access</div>
     </div>
     <button class="btn-primary-academy" data-bs-toggle="modal" data-bs-target="#addModal">
         <i class="bi bi-upload"></i> Upload File

@@ -1,6 +1,7 @@
 <?php
-$pageTitle = 'Students';
-require_once __DIR__ . '/layout.php';
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 $CLASS_TIMINGS = [
     '08:00-09:00' => '8:00 AM – 9:00 AM',
@@ -138,6 +139,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     header('Location: students.php'); exit;
 }
+
+$pageTitle = 'Students';
+require_once __DIR__ . '/layout.php';
 
 // Show ALL students by default (no status filter)
 $filter_course = (int)($_GET['course'] ?? 0);

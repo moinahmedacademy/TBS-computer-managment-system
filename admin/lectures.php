@@ -1,6 +1,7 @@
-<?php
-$pageTitle = 'Lectures';
-require_once __DIR__ . '/layout.php';
+﻿<?php
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
@@ -35,6 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     header('Location: lectures.php'); exit;
 }
+
+$pageTitle = 'Lectures';
+require_once __DIR__ . '/layout.php';
+
 
 $filterCourse = (int)($_GET['course'] ?? 0);
 $sql = "SELECT l.*, c.name as course_name FROM lectures l JOIN courses c ON l.course_id=c.id WHERE 1=1";
@@ -97,7 +102,7 @@ $fileClasses = ['pdf'=>'file-pdf','doc'=>'file-doc','docx'=>'file-doc','ppt'=>'f
                     <?php endif; ?>
                 </td>
                 <td style="font-size:.82rem"><?= sanitize($l['course_name']) ?></td>
-                <td style="font-size:.82rem;color:var(--text-muted)"><?= $l['file_size'] ? formatFileSize($l['file_size']) : '—' ?></td>
+                <td style="font-size:.82rem;color:var(--text-muted)"><?= $l['file_size'] ? formatFileSize($l['file_size']) : 'â€”' ?></td>
                 <td>
                     <span class="badge-academy <?= $l['allow_download']?'badge-success':'badge-danger' ?>">
                         <?= $l['allow_download'] ? 'Allowed' : 'Blocked' ?>
@@ -159,7 +164,7 @@ $fileClasses = ['pdf'=>'file-pdf','doc'=>'file-doc','docx'=>'file-doc','ppt'=>'f
                         <textarea name="description" class="form-control" rows="2" placeholder="Optional description..."></textarea>
                     </div>
                     <div class="col-12">
-                        <label class="form-label">File <small style="color:var(--text-muted)">(PDF, DOC, PPT, Images – max 50MB)</small></label>
+                        <label class="form-label">File <small style="color:var(--text-muted)">(PDF, DOC, PPT, Images â€“ max 50MB)</small></label>
                         <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.gif">
                     </div>
                     <div class="col-12">

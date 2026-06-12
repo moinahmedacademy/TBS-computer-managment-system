@@ -1,6 +1,7 @@
-<?php
-$pageTitle = 'Parents';
-require_once __DIR__ . '/layout.php';
+﻿<?php
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
@@ -58,6 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     header('Location: parents.php'); exit;
 }
+
+$pageTitle = 'Parents';
+require_once __DIR__ . '/layout.php';
+
 
 $search = sanitize($_GET['q'] ?? '');
 $sql = "SELECT p.*, s.name as student_name, s.roll_number FROM parents p JOIN students s ON p.student_id=s.id WHERE 1=1";
@@ -119,7 +124,7 @@ $students = db()->fetchAll("SELECT id,name,roll_number FROM students WHERE statu
                         target="_blank" class="btn-whatsapp" style="padding:.3rem .7rem;font-size:.78rem">
                         <i class="bi bi-whatsapp"></i> <?= sanitize($p['whatsapp']) ?>
                     </a>
-                    <?php else: ?><span style="color:var(--text-muted);font-size:.82rem">—</span><?php endif; ?>
+                    <?php else: ?><span style="color:var(--text-muted);font-size:.82rem">â€”</span><?php endif; ?>
                 </td>
                 <td>
                     <div class="d-flex gap-1">

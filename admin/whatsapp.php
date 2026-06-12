@@ -244,7 +244,7 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
     <div class="col-12 col-lg-9">
 
         <!-- Templates -->
-        <div class="data-card" style="padding:1.25rem">
+        <div class="data-card mb-3" style="padding:1.25rem">
             <div style="font-weight:700;font-size:.88rem;margin-bottom:.85rem;display:flex;align-items:center;gap:.5rem">
                 <i class="bi bi-layout-text-window" style="color:var(--accent)"></i> Message Templates
                 <span style="font-size:.72rem;color:var(--text-muted);font-weight:400">(click to use)</span>
@@ -279,13 +279,8 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                 <?php endforeach; ?>
             </div>
         </div>
-    </div>
 
-</div><!-- end compose+templates row -->
-
-<!-- ── FULL-WIDTH: SENT LOG ──────────────────────────────────────────────── -->
-<div class="row g-3 mt-0">
-    <div class="col-12">
+        <!-- Sent Log -->
         <div class="data-card">
             <div class="data-card-header">
                 <div class="data-card-title">
@@ -406,7 +401,7 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
             </div>
         </div>
     </div>
-</div><!-- end log row -->
+</div><!-- end row -->
 
 <!-- Custom Template Modal -->
 <div class="modal fade" id="customTplModal" tabindex="-1">

@@ -2,10 +2,14 @@
 $pageTitle = 'WhatsApp';
 require_once __DIR__ . '/layout.php';
 
-// Ensure extra columns exist (safe to run multiple times)
+// Ensure extra columns exist
 db()->execute("ALTER TABLE whatsapp_logs ADD COLUMN IF NOT EXISTS recipient_name VARCHAR(150) NULL");
-db()->execute("ALTER TABLE whatsapp_logs ADD COLUMN IF NOT EXISTS student_roll VARCHAR(30) NULL");
-db()->execute("ALTER TABLE whatsapp_logs ADD COLUMN IF NOT EXISTS father_name VARCHAR(150) NULL");
+db()->execute("ALTER TABLE whatsapp_logs ADD COLUMN IF NOT EXISTS student_roll  VARCHAR(30)  NULL");
+db()->execute("ALTER TABLE whatsapp_logs ADD COLUMN IF NOT EXISTS father_name   VARCHAR(150) NULL");
+db()->execute("ALTER TABLE whatsapp_logs ADD COLUMN IF NOT EXISTS parent_name   VARCHAR(150) NULL");
+db()->execute("ALTER TABLE whatsapp_logs ADD COLUMN IF NOT EXISTS course_name   VARCHAR(150) NULL");
+db()->execute("ALTER TABLE whatsapp_logs ADD COLUMN IF NOT EXISTS batch_code    VARCHAR(80)  NULL");
+db()->execute("ALTER TABLE whatsapp_logs ADD COLUMN IF NOT EXISTS class_timing  VARCHAR(30)  NULL");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? 'send';
@@ -48,14 +52,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message   = sanitize($_POST['message'] ?? '');
         $msgType   = sanitize($_POST['msg_type'] ?? 'custom');
         $recName   = sanitize($_POST['recipient_name'] ?? '');
-        $rollNo    = sanitize($_POST['roll_number'] ?? '');
-        $fatherN   = sanitize($_POST['father_name'] ?? '');
+        $rollNo    = sanitize($_POST['roll_number']    ?? '');
+        $fatherN   = sanitize($_POST['father_name']    ?? '');
+        $parentN   = sanitize($_POST['parent_name']    ?? '');
+        $courseN   = sanitize($_POST['course_name']    ?? '');
+        $batchC    = sanitize($_POST['batch_code']     ?? '');
+        $timing    = sanitize($_POST['class_timing']   ?? '');
 
         if ($phone) {
             db()->execute(
-                "INSERT INTO whatsapp_logs (sent_by,phone,message,message_type,status,recipient_name,student_roll,father_name,sent_at)
-                 VALUES (?,?,?,?,'sent',?,?,?,NOW())",
-                [$_SESSION['user_id'], $phone, $message, $msgType, $recName, $rollNo, $fatherN]
+                "INSERT INTO whatsapp_logs (sent_by,phone,message,message_type,status,recipient_name,student_roll,father_name,parent_name,course_name,batch_code,class_timing,sent_at)
+                 VALUES (?,?,?,?,'sent',?,?,?,?,?,?,?,NOW())",
+                [$_SESSION['user_id'], $phone, $message, $msgType, $recName, $rollNo, $fatherN, $parentN, $courseN, $batchC, $timing]
             );
             echo json_encode(['ok' => true]); exit;
         }
@@ -71,7 +79,7 @@ $logs = db()->fetchAll(
 );
 
 $students = db()->fetchAll(
-    "SELECT s.id, s.name, s.roll_number, s.batch,
+    "SELECT s.id, s.name, s.roll_number, s.batch, s.timing,
             c.name as course_name,
             p.name as parent_name, p.relation,
             p.whatsapp as parent_wa, p.phone as parent_phone
@@ -147,6 +155,7 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                      data-parent="<?= sanitize($s['parent_name'] ?? '') ?>"
                      data-father="<?= sanitize($s['parent_name'] ?? '') ?>"
                      data-batch="<?= sanitize($s['batch'] ?? '') ?>"
+                     data-timing="<?= sanitize($s['timing'] ?? '') ?>"
                      data-search="<?= strtolower(sanitize($s['name'] . ' ' . $s['roll_number'] . ' ' . $s['course_name'] . ' ' . $s['batch'])) ?>"
                      onclick="selectStudent(this)"
                      style="padding:.6rem 1rem;cursor:pointer;border-bottom:1px solid var(--border);font-size:.83rem;transition:background .1s">
@@ -171,8 +180,12 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
 
             <form id="waForm">
                 <input type="hidden" id="waStudentName" value="">
-                <input type="hidden" id="waRollNo" value="">
-                <input type="hidden" id="waFatherName" value="">
+                <input type="hidden" id="waRollNo"      value="">
+                <input type="hidden" id="waFatherName"  value="">
+                <input type="hidden" id="waParentName"  value="">
+                <input type="hidden" id="waCourseName"  value="">
+                <input type="hidden" id="waBatchCode"   value="">
+                <input type="hidden" id="waTiming"      value="">
 
                 <div class="mb-3">
                     <label class="form-label">WhatsApp Number *</label>
@@ -261,46 +274,71 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                 <table class="table-academy">
                     <thead>
                         <tr>
-                            <th>Recipient</th>
-                            <th>Phone</th>
+                            <th>Student</th>
+                            <th>Parent / Phone</th>
+                            <th>Course / Batch</th>
                             <th>Type</th>
                             <th>Message Preview</th>
                             <th>Sent</th>
-                            <th>Re-send</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                     <?php if ($logs): foreach ($logs as $log): ?>
                     <tr>
+                        <!-- Student name + roll -->
                         <td>
                             <?php if (!empty($log['recipient_name'])): ?>
                             <div style="font-weight:500;font-size:.83rem"><?= sanitize($log['recipient_name']) ?></div>
                             <?php if (!empty($log['student_roll'])): ?>
                             <div style="font-size:.72rem;color:var(--accent)"><?= sanitize($log['student_roll']) ?></div>
                             <?php endif; ?>
-                            <?php if (!empty($log['father_name'])): ?>
-                            <div style="font-size:.72rem;color:var(--text-muted)">F: <?= sanitize($log['father_name']) ?></div>
-                            <?php endif; ?>
                             <?php else: ?>
                             <span style="color:var(--text-muted);font-size:.78rem">—</span>
                             <?php endif; ?>
                         </td>
-                        <td style="font-size:.82rem"><?= sanitize($log['phone']) ?></td>
+                        <!-- Parent name + phone -->
+                        <td>
+                            <?php $parentLabel = !empty($log['parent_name']) ? $log['parent_name'] : (!empty($log['father_name']) ? $log['father_name'] : ''); ?>
+                            <?php if ($parentLabel): ?>
+                            <div style="font-size:.8rem;font-weight:500"><?= sanitize($parentLabel) ?></div>
+                            <?php endif; ?>
+                            <div style="font-size:.75rem;color:var(--text-muted)"><?= sanitize($log['phone']) ?></div>
+                        </td>
+                        <!-- Course + batch + timing -->
+                        <td>
+                            <?php if (!empty($log['course_name'])): ?>
+                            <div style="font-size:.78rem;font-weight:500"><?= sanitize($log['course_name']) ?></div>
+                            <?php endif; ?>
+                            <?php if (!empty($log['batch_code'])): ?>
+                            <div style="font-size:.72rem;color:var(--text-muted)"><?= sanitize($log['batch_code']) ?></div>
+                            <?php endif; ?>
+                            <?php if (!empty($log['class_timing'])): ?>
+                            <div style="font-size:.72rem;color:var(--accent)"><?= sanitize($log['class_timing']) ?></div>
+                            <?php endif; ?>
+                            <?php if (empty($log['course_name']) && empty($log['batch_code']) && empty($log['class_timing'])): ?>
+                            <span style="color:var(--text-muted);font-size:.78rem">—</span>
+                            <?php endif; ?>
+                        </td>
+                        <!-- Type badge -->
                         <td>
                             <span class="badge-academy badge-info" style="font-size:.68rem"><?= ucfirst($log['message_type'] ?? 'custom') ?></span>
                         </td>
-                        <td style="max-width:180px">
-                            <div style="font-size:.75rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px"
+                        <!-- Message preview -->
+                        <td style="max-width:160px">
+                            <div style="font-size:.75rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px"
                                  title="<?= sanitize($log['message'] ?? '') ?>">
-                                <?= sanitize(substr($log['message'] ?? '', 0, 60)) ?><?= strlen($log['message'] ?? '') > 60 ? '…' : '' ?>
+                                <?= sanitize(substr($log['message'] ?? '', 0, 55)) ?><?= strlen($log['message'] ?? '') > 55 ? '…' : '' ?>
                             </div>
                         </td>
+                        <!-- Sent time -->
                         <td style="font-size:.75rem;color:var(--text-muted);white-space:nowrap">
                             <?= !empty($log['sent_at']) ? date('d M, H:i', strtotime($log['sent_at'])) : '—' ?>
                             <?php if (!empty($log['sent_by_name'])): ?>
-                            <div style="font-size:.68rem;color:var(--text-muted)"><?= sanitize($log['sent_by_name']) ?></div>
+                            <div style="font-size:.68rem"><?= sanitize($log['sent_by_name']) ?></div>
                             <?php endif; ?>
                         </td>
+                        <!-- Re-send -->
                         <td>
                             <?php
                             $cleanNum = preg_replace('/[^0-9]/', '', $log['phone']);
@@ -313,7 +351,7 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                         </td>
                     </tr>
                     <?php endforeach; else: ?>
-                    <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2.5rem">
+                    <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2.5rem">
                         <i class="bi bi-chat-dots" style="font-size:2rem;display:block;margin-bottom:.5rem"></i>
                         No messages sent yet
                     </td></tr>
@@ -392,10 +430,16 @@ function useTemplate(text) {
     const name   = document.getElementById('waStudentName').value;
     const roll   = document.getElementById('waRollNo').value;
     const father = document.getElementById('waFatherName').value;
+    const course = document.getElementById('waCourseName').value;
+    const batch  = document.getElementById('waBatchCode').value;
+    const timing = document.getElementById('waTiming').value;
     let msg = text;
     if (name)   { msg = msg.replace(/{Student Name}/g, name).replace(/{Name}/g, name); }
     if (roll)   { msg = msg.replace(/{Roll No}/g, roll); }
     if (father) { msg = msg.replace(/{Father Name}/g, father).replace(/{Parent Name}/g, father); }
+    if (course) { msg = msg.replace(/{Course}/g, course); }
+    if (batch)  { msg = msg.replace(/{Batch}/g, batch); }
+    if (timing) { msg = msg.replace(/{Timing}/g, timing); }
     msg = msg.replace(/{Date}/g, new Date().toLocaleDateString('en-PK', {day:'2-digit',month:'short',year:'numeric'}));
     document.getElementById('waMessage').value = msg;
     updateCount();
@@ -417,13 +461,20 @@ function filterStudents(q) {
 }
 
 function selectStudent(el) {
-    document.getElementById('waPhone').value       = el.dataset.phone || '';
-    document.getElementById('waStudentName').value = el.dataset.name  || '';
-    document.getElementById('waRollNo').value      = el.dataset.roll  || '';
-    document.getElementById('waFatherName').value  = el.dataset.father || el.dataset.parent || '';
+    const father = el.dataset.father || el.dataset.parent || '';
+    document.getElementById('waPhone').value       = el.dataset.phone  || '';
+    document.getElementById('waStudentName').value = el.dataset.name   || '';
+    document.getElementById('waRollNo').value      = el.dataset.roll   || '';
+    document.getElementById('waFatherName').value  = father;
+    document.getElementById('waParentName').value  = el.dataset.parent || '';
+    document.getElementById('waCourseName').value  = el.dataset.course || '';
+    document.getElementById('waBatchCode').value   = el.dataset.batch  || '';
+    document.getElementById('waTiming').value      = el.dataset.timing || '';
 
     document.getElementById('chipText').textContent =
-        el.dataset.name + ' · ' + el.dataset.roll + (el.dataset.course ? ' · ' + el.dataset.course : '');
+        el.dataset.name + ' · ' + el.dataset.roll
+        + (el.dataset.course ? ' · ' + el.dataset.course : '')
+        + (el.dataset.timing ? ' · ' + el.dataset.timing : '');
     document.getElementById('selectedChip').style.display = '';
     document.getElementById('studentListWrap').style.display = 'none';
     document.getElementById('studentSearch').value = '';
@@ -435,18 +486,18 @@ function selectStudent(el) {
             .replace(/{Student Name}/g, el.dataset.name)
             .replace(/{Name}/g, el.dataset.name)
             .replace(/{Roll No}/g, el.dataset.roll)
-            .replace(/{Parent Name}/g, el.dataset.father || el.dataset.parent)
-            .replace(/{Father Name}/g, el.dataset.father || el.dataset.parent)
-            .replace(/{Course}/g, el.dataset.course);
+            .replace(/{Parent Name}/g, father)
+            .replace(/{Father Name}/g, father)
+            .replace(/{Course}/g,  el.dataset.course || '')
+            .replace(/{Timing}/g,  el.dataset.timing || '')
+            .replace(/{Batch}/g,   el.dataset.batch  || '');
         updateCount();
     }
 }
 
 function clearStudent() {
-    document.getElementById('waStudentName').value = '';
-    document.getElementById('waRollNo').value = '';
-    document.getElementById('waFatherName').value = '';
-    document.getElementById('waPhone').value = '';
+    ['waStudentName','waRollNo','waFatherName','waParentName','waCourseName','waBatchCode','waTiming','waPhone']
+        .forEach(id => document.getElementById(id).value = '');
     document.getElementById('selectedChip').style.display = 'none';
 }
 
@@ -471,13 +522,17 @@ function sendWhatsApp() {
 
     // Log via AJAX
     const fd = new FormData();
-    fd.append('action', 'log');
-    fd.append('phone', phone);
-    fd.append('message', message);
-    fd.append('msg_type', msgType);
+    fd.append('action',         'log');
+    fd.append('phone',          phone);
+    fd.append('message',        message);
+    fd.append('msg_type',       msgType);
     fd.append('recipient_name', stuName);
-    fd.append('roll_number', rollNo);
-    fd.append('father_name', fatName);
+    fd.append('roll_number',    rollNo);
+    fd.append('father_name',    fatName);
+    fd.append('parent_name',    document.getElementById('waParentName').value);
+    fd.append('course_name',    document.getElementById('waCourseName').value);
+    fd.append('batch_code',     document.getElementById('waBatchCode').value);
+    fd.append('class_timing',   document.getElementById('waTiming').value);
 
     fetch('whatsapp.php', { method: 'POST', body: fd })
         .then(r => r.json())

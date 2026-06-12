@@ -1,15 +1,12 @@
--- The Brighten Stars Academy – Database Updates
--- Run this in phpMyAdmin after the initial import
+-- The Brighten Stars Academy – Safe Database Update
+-- MySQL 5.7 / MariaDB compatible
+-- Run each statement one by one in phpMyAdmin Query tab
+-- If it says "Duplicate column" just skip that line and run the next
 
--- Add class timing to students
-ALTER TABLE students
-  ADD COLUMN IF NOT EXISTS timing VARCHAR(20) NULL AFTER batch,
-  ADD COLUMN IF NOT EXISTS photo VARCHAR(255) NULL AFTER timing,
-  ADD COLUMN IF NOT EXISTS completion_date DATE NULL AFTER enrollment_date;
-
--- Add status column to users if missing
-ALTER TABLE users
-  ADD COLUMN IF NOT EXISTS status ENUM('active','inactive') NOT NULL DEFAULT 'active' AFTER role;
+ALTER TABLE students ADD COLUMN timing VARCHAR(20) NULL DEFAULT NULL;
+ALTER TABLE students ADD COLUMN photo VARCHAR(255) NULL DEFAULT NULL;
+ALTER TABLE students ADD COLUMN completion_date DATE NULL DEFAULT NULL;
+ALTER TABLE users ADD COLUMN status ENUM('active','inactive') NOT NULL DEFAULT 'active';
 
 -- Update existing users to active
-UPDATE users SET status='active' WHERE status IS NULL OR status='';
+UPDATE users SET status = 'active';

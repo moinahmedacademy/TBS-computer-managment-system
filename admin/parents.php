@@ -125,8 +125,9 @@ $students = db()->fetchAll("SELECT id,name,roll_number FROM students WHERE statu
                             <i class="bi bi-pencil"></i>
                         </button>
                         <?php $waNum = $p['whatsapp'] ?: $p['phone']; ?>
+                        <?php $waMsg = "Dear " . ($p['name'] ?? '') . ", this is a message from The Brighten Stars Academy regarding your child " . ($p['student_name'] ?? '') . "."; ?>
                         <button class="btn-icon btn-icon-wa" title="Send WhatsApp"
-                            onclick="openWhatsApp('<?= sanitize($waNum) ?>','Dear <?= sanitize($p[\'name\']) ?>, this is a message from The Brighten Stars Academy regarding your child <?= sanitize($p[\'student_name\'] ?? \'\') ?>.')">
+                            onclick="openWhatsApp('<?= sanitize($waNum) ?>',<?= json_encode($waMsg) ?>)">
                             <i class="bi bi-whatsapp"></i>
                         </button>
                         <a href="<?= BASE_URL ?>/admin/results.php?student=<?= $p['student_id'] ?>"

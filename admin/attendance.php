@@ -273,7 +273,8 @@ if ($selectedCourse && in_array($viewMode, ['monthly','full'])) {
                 <td>
                     <?php if ($waNum): ?>
                     <button class="btn-icon btn-icon-wa" title="Send WhatsApp"
-                        onclick="openWhatsApp('<?= sanitize($waNum) ?>','Dear Parent, <?= sanitize($ms[\'name\']) ?>\'s attendance in <?= date(\'F Y\', strtotime($selectedMonth.\'-01\')) ?>: Present=<?= $ms[\'present\'] ?>, Absent=<?= $ms[\'absent\'] ?>, Total=<?= $ms[\'total\'] ?> days (<?= $pct ?>%). – The Brighten Stars Academy')">
+                        <?php $attMsg = "Dear Parent, " . $ms['name'] . "'s attendance in " . date('F Y', strtotime($selectedMonth.'-01')) . ": Present=" . $ms['present'] . ", Absent=" . $ms['absent'] . ", Total=" . $ms['total'] . " days (" . $pct . "%). – The Brighten Stars Academy"; ?>
+                        onclick="openWhatsApp('<?= sanitize($waNum) ?>', <?= json_encode($attMsg) ?>)">
                         <i class="bi bi-whatsapp"></i>
                     </button>
                     <?php else: ?><span style="color:var(--text-muted);font-size:.75rem">—</span><?php endif; ?>

@@ -65,12 +65,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 [$name, $loginEmail, $hashedPw, $phone]
             );
 
-            $cols = "user_id,roll_number,name,father_name,phone,email,cnic,dob,gender,address,course_id,batch,timing,enrollment_date";
-            $vals = "?,?,?,?,?,?,?,?,?,?,?,?,?,?";
-            $params = [$userId,$rollNo,$name,$fatherName,$phone,$email,$cnic,$dob?:null,$gender,$address,$courseId,$batch,$timing,$enrollDate];
-            if ($photoPath) { $cols .= ',photo'; $vals .= ',?'; $params[] = $photoPath; }
-
-            db()->execute("INSERT INTO students ($cols) VALUES ($vals)", $params);
+            db()->execute(
+                "INSERT INTO students (user_id,roll_number,name,father_name,phone,email,cnic,dob,gender,address,course_id,batch,timing,enrollment_date,photo)
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                [$userId,$rollNo,$name,$fatherName,$phone,$email,$cnic,$dob?:null,$gender,$address,$courseId,$batch,$timing,$enrollDate,$photoPath]
+            );
             flashMessage('success', "✅ Student <strong>$name</strong> added. Roll: <strong>$rollNo</strong> | Login: <strong>$loginEmail</strong> | Pass: <strong>" . ($password ?: 'Student@123') . "</strong>");
 
         } else {
@@ -78,11 +77,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $st = db()->fetchOne("SELECT user_id, photo FROM students WHERE id=?", [$id]);
             if (!$st) { flashMessage('danger','Student not found.'); header('Location: students.php'); exit; }
 
-            $setCols = "name=?,father_name=?,phone=?,email=?,cnic=?,dob=?,gender=?,address=?,course_id=?,batch=?,timing=?,enrollment_date=?";
-            $setParams = [$name,$fatherName,$phone,$email,$cnic,$dob?:null,$gender,$address,$courseId,$batch,$timing,$enrollDate];
-            if ($photoPath) { $setCols .= ',photo=?'; $setParams[] = $photoPath; }
-            $setParams[] = $id;
-            db()->execute("UPDATE students SET $setCols WHERE id=?", $setParams);
+            $setParams = [$name,$fatherName,$phone,$email,$cnic,$dob?:null,$gender,$address,$courseId,$batch,$timing,$enrollDate,$id];
+            if ($photoPath) {
+                db()->execute(
+                    "UPDATE students SET name=?,father_name=?,phone=?,email=?,cnic=?,dob=?,gender=?,address=?,course_id=?,batch=?,timing=?,enrollment_date=?,photo=? WHERE id=?",
+                    array_merge(array_slice($setParams,0,12), [$photoPath, $id])
+                );
+            } else {
+                db()->execute(
+                    "UPDATE students SET name=?,father_name=?,phone=?,email=?,cnic=?,dob=?,gender=?,address=?,course_id=?,batch=?,timing=?,enrollment_date=? WHERE id=?",
+                    $setParams
+                );
+            }
 
             if ($st['user_id']) db()->execute("UPDATE users SET name=?,phone=? WHERE id=?", [$name,$phone,$st['user_id']]);
             flashMessage('success', "Student updated successfully.");
@@ -116,8 +122,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 db()->execute(
                     "INSERT INTO students (user_id,roll_number,name,father_name,phone,email,cnic,dob,gender,address,course_id,batch,timing,enrollment_date,photo)
                      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,CURDATE(),?)",
-                    [$stu['user_id'],$newRoll,$stu['name'],$stu['father_name'],$stu['phone'],$stu['email'],
-                     $stu['cnic'],$stu['dob'],$stu['gender'],$stu['address'],$newCourse,$stu['batch'],$stu['timing'],$stu['photo']]
+                    [$stu['user_id'],$newRoll,$stu['name'],$stu['father_name'] ?? null,$stu['phone'] ?? null,$stu['email'] ?? null,
+                     $stu['cnic'] ?? null,$stu['dob'] ?? null,$stu['gender'] ?? 'male',$stu['address'] ?? null,
+                     $newCourse,$stu['batch'] ?? null,$stu['timing'] ?? null,$stu['photo'] ?? null]
                 );
                 flashMessage('success', "Course completed. Student re-enrolled in new course. New Roll: <strong>$newRoll</strong>");
             }
@@ -261,8 +268,9 @@ $courses  = db()->fetchAll("SELECT id, name FROM courses WHERE status='active' O
                             </button>
                             <?php endif; ?>
                             <!-- Delete -->
+                            <?php $delMsg = "Student " . ($s['name'] ?? '') . " will be permanently deleted along with all records."; ?>
                             <form method="POST" style="display:inline"
-                                  onsubmit="return confirmDelete(this, 'Student <?= sanitize($s[\'name\']) ?> will be permanently deleted along with all records.')">
+                                  onsubmit="return confirmDelete(this, <?= json_encode($delMsg) ?>)">
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="id" value="<?= $s['id'] ?>">
                                 <button type="submit" class="btn-icon btn-icon-delete" title="Delete">

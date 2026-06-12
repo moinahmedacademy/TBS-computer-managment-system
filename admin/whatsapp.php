@@ -1,8 +1,10 @@
 <?php
-$pageTitle = 'WhatsApp';
-require_once __DIR__ . '/layout.php';
+// ── All POST actions MUST run before layout.php outputs any HTML ──────────
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/functions.php';
 
-// Ensure extra columns exist
+// Ensure extra columns exist (safe to run every request — IF NOT EXISTS is a no-op)
 db()->execute("ALTER TABLE whatsapp_logs ADD COLUMN IF NOT EXISTS recipient_name VARCHAR(150) NULL");
 db()->execute("ALTER TABLE whatsapp_logs ADD COLUMN IF NOT EXISTS student_roll  VARCHAR(30)  NULL");
 db()->execute("ALTER TABLE whatsapp_logs ADD COLUMN IF NOT EXISTS father_name   VARCHAR(150) NULL");
@@ -81,6 +83,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['ok' => false]); exit;
     }
 }
+
+$pageTitle = 'WhatsApp';
+require_once __DIR__ . '/layout.php';
 
 // Fetch data
 $logs = db()->fetchAll(

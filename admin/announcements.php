@@ -104,12 +104,15 @@ $typeColors = ['holiday'=>'danger','test'=>'warning','course'=>'info','event'=>'
                 <button class="btn-icon btn-icon-edit" onclick="editAnn(<?= htmlspecialchars(json_encode($ann)) ?>)">
                     <i class="bi bi-pencil"></i>
                 </button>
-                <form method="POST" onsubmit="return confirmDelete(this)">
+                <form method="POST" id="delForm-<?= $ann['id'] ?>">
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="id" value="<?= $ann['id'] ?>">
                     <?= csrfField() ?>
-                    <button type="submit" class="btn-icon btn-icon-delete"><i class="bi bi-trash"></i></button>
                 </form>
+                <button type="button" class="btn-icon btn-icon-delete"
+                        onclick="askDelete(<?= $ann['id'] ?>, <?= json_encode(sanitize($ann['title'])) ?>)">
+                    <i class="bi bi-trash"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -262,7 +265,44 @@ $typeColors = ['holiday'=>'danger','test'=>'warning','course'=>'info','event'=>'
     </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="annDeleteModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+        <div class="modal-content" style="border-top:3px solid #ef4444">
+            <div class="modal-body text-center" style="padding:2rem">
+                <div style="width:64px;height:64px;border-radius:50%;background:rgba(239,68,68,.15);display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem">
+                    <i class="bi bi-trash" style="font-size:1.8rem;color:#ef4444"></i>
+                </div>
+                <h5 style="font-weight:700;margin-bottom:.5rem">Delete Announcement?</h5>
+                <p id="annDeleteMsg" style="color:var(--text-muted);font-size:.88rem;margin-bottom:1.5rem"></p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </button>
+                    <button type="button" id="annDeleteYes" class="btn btn-danger" style="font-weight:600">
+                        <i class="bi bi-trash me-1"></i> Yes, Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+let _delFormId = null;
+
+function askDelete(id, title) {
+    _delFormId = 'delForm-' + id;
+    document.getElementById('annDeleteMsg').textContent =
+        '"' + title + '" will be permanently deleted. This cannot be undone.';
+    new bootstrap.Modal(document.getElementById('annDeleteModal')).show();
+}
+
+document.getElementById('annDeleteYes').addEventListener('click', function() {
+    bootstrap.Modal.getInstance(document.getElementById('annDeleteModal')).hide();
+    if (_delFormId) document.getElementById(_delFormId).submit();
+});
+
 function editAnn(a) {
     document.getElementById('ea_id').value = a.id;
     document.getElementById('ea_title').value = a.title;

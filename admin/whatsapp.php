@@ -223,7 +223,7 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
             <div class="row g-2">
                 <?php foreach ($builtinTemplates as $tpl): ?>
                 <div class="col-6 col-md-4 col-xl-3">
-                    <div class="tpl-card" onclick="useTemplate(<?= json_encode($tpl['body']) ?>)"
+                    <div class="tpl-card use-tpl" data-body="<?= htmlspecialchars($tpl['body'], ENT_QUOTES) ?>"
                          style="border-top:3px solid <?= $tpl['color'] ?>">
                         <i class="bi <?= $tpl['icon'] ?>" style="color:<?= $tpl['color'] ?>;font-size:1.1rem;margin-bottom:.3rem;display:block"></i>
                         <div style="font-size:.78rem;font-weight:600;line-height:1.3"><?= $tpl['title'] ?></div>
@@ -233,7 +233,7 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
 
                 <?php foreach ($customTemplates as $idx => $tpl): ?>
                 <div class="col-6 col-md-4 col-xl-3" id="ctpl-<?= $idx ?>">
-                    <div class="tpl-card" onclick="useTemplate(<?= json_encode($tpl['body']) ?>)"
+                    <div class="tpl-card use-tpl" data-body="<?= htmlspecialchars($tpl['body'], ENT_QUOTES) ?>"
                          style="border-top:3px solid #8b5cf6;position:relative">
                         <i class="bi bi-star-fill" style="color:#8b5cf6;font-size:1.1rem;margin-bottom:.3rem;display:block"></i>
                         <div style="font-size:.78rem;font-weight:600;line-height:1.3"><?= sanitize($tpl['title']) ?></div>
@@ -501,6 +501,13 @@ function updateCount() {
 }
 
 document.getElementById('waMessage').addEventListener('input', updateCount);
+
+// Template cards click handler
+document.querySelectorAll('.use-tpl').forEach(el => {
+    el.addEventListener('click', function() {
+        useTemplate(this.dataset.body);
+    });
+});
 
 // Close student dropdown on outside click
 document.addEventListener('click', e => {

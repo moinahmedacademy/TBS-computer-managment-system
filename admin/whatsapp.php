@@ -555,7 +555,7 @@ function sendWhatsApp() {
     if (!phone)   { showToast('Please enter a WhatsApp number.', 'danger'); return; }
     if (!message) { showToast('Please write a message.', 'danger'); return; }
 
-    // Capture all log fields BEFORE clearing the form
+    // Capture all log fields BEFORE any action
     const logData = {
         phone:          phone,
         message:        message,
@@ -569,23 +569,24 @@ function sendWhatsApp() {
         class_timing:   document.getElementById('waTiming').value,
     };
 
-    // Clean phone number and open WhatsApp
     const clean = phone.replace(/[^0-9]/g, '');
     const num   = clean.startsWith('0') ? '92' + clean.slice(1) : clean;
-    window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(message), '_blank');
+    const waUrl = 'https://wa.me/' + num + '?text=' + encodeURIComponent(message);
 
-    // Ask if message was actually sent — only log if confirmed
+    // Show confirmation FIRST — before opening WhatsApp so dialog is visible
     tbsConfirm(
-        'Did you send the message in WhatsApp?',
+        'Open WhatsApp and send this message to <strong>' + (logData.recipient_name || phone) + '</strong>?',
         function() {
-            // User confirmed — log it and reset form
+            // Open WhatsApp
+            window.open(waUrl, '_blank');
+
+            // Clear compose form
             clearStudent();
             document.getElementById('waMessage').value = '';
             document.getElementById('msgType').value   = 'custom';
             updateCount();
 
-            document.getElementById('sendFeedback').style.display = '';
-
+            // Log via AJAX then reload
             const fd = new FormData();
             fd.append('action', 'log');
             Object.entries(logData).forEach(([k, v]) => fd.append(k, v));
@@ -593,13 +594,13 @@ function sendWhatsApp() {
             fetch('whatsapp.php', { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(() => location.reload())
-                .catch(() => showToast('Logged locally but server save failed.', 'warning'));
+                .catch(() => showToast('WhatsApp opened but log failed to save.', 'warning'));
         },
         {
             type:     'info',
             icon:     'bi-whatsapp',
-            yesLabel: 'Yes, I Sent It',
-            noLabel:  'No, I Did Not Send'
+            yesLabel: 'Yes, Open WhatsApp',
+            noLabel:  'Cancel'
         }
     );
 }

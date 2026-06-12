@@ -301,8 +301,8 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                 </form>
             </div>
 
-            <div class="table-wrap" style="overflow-x:auto;overflow-y:auto;max-height:520px">
-                <table class="table-academy" id="logTable" style="white-space:nowrap;min-width:820px">
+            <div class="table-wrap" style="overflow-y:auto;max-height:520px">
+                <table class="table-academy" id="logTable" style="width:100%">
                     <thead style="position:sticky;top:0;z-index:2">
                         <tr>
                             <th style="width:36px">
@@ -362,8 +362,8 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                             <span class="badge-academy badge-info" style="font-size:.68rem"><?= ucfirst($log['message_type'] ?? 'custom') ?></span>
                         </td>
                         <!-- Message preview -->
-                        <td style="max-width:200px;white-space:normal">
-                            <div style="font-size:.75rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:190px"
+                        <td>
+                            <div style="font-size:.75rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px"
                                  title="<?= sanitize($log['message'] ?? '') ?>">
                                 <?= sanitize(substr($log['message'] ?? '', 0, 55)) ?><?= strlen($log['message'] ?? '') > 55 ? '…' : '' ?>
                             </div>

@@ -145,7 +145,7 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
 <div class="row g-3">
 
     <!-- ── LEFT: COMPOSE ──────────────────────────────────────────────── -->
-    <div class="col-12 col-lg-3">
+    <div class="col-12 col-lg-4">
         <div class="data-card" style="padding:1.5rem">
             <div style="font-weight:700;font-size:.95rem;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem">
                 <i class="bi bi-pencil-square" style="color:var(--accent)"></i> Compose Message
@@ -241,7 +241,7 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
     </div>
 
     <!-- ── RIGHT: TEMPLATES ─────────────────────────────────────────────── -->
-    <div class="col-12 col-lg-9">
+    <div class="col-12 col-lg-8">
 
         <!-- Templates -->
         <div class="data-card mb-3" style="padding:1.25rem">

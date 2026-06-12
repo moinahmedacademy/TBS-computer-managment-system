@@ -365,7 +365,21 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                         </td>
                         <!-- Type badge -->
                         <td>
-                            <span class="badge-academy badge-info" style="font-size:.68rem"><?= ucfirst($log['message_type'] ?? 'custom') ?></span>
+                            <?php
+                            $typeLabels = [
+                                'result'       => 'Test Result',
+                                'attendance'   => 'Attendance',
+                                'report'       => 'Monthly Report',
+                                'holiday'      => 'Holiday',
+                                'fee'          => 'Fee Reminder',
+                                'admission'    => 'Admission',
+                                'test_schedule'=> 'Test Schedule',
+                                'announcement' => 'Announcement',
+                                'custom'       => 'Custom',
+                            ];
+                            $typeKey = $log['message_type'] ?? 'custom';
+                            ?>
+                            <span class="badge-academy badge-info" style="font-size:.68rem"><?= htmlspecialchars($typeLabels[$typeKey] ?? ucfirst($typeKey)) ?></span>
                         </td>
                         <!-- Message preview -->
                         <td style="white-space:normal;max-width:240px">
@@ -405,6 +419,57 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
         </div>
     </div>
 </div><!-- end row -->
+
+<!-- ── WhatsApp Send Confirmation Modal ───────────────────────────────── -->
+<div class="modal fade" id="waSendConfirmModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+        <div class="modal-content" style="border-top:3px solid #25d366">
+            <div class="modal-body text-center" style="padding:2rem">
+                <div style="width:64px;height:64px;border-radius:50%;background:rgba(37,211,102,.15);display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem">
+                    <i class="bi bi-whatsapp" style="font-size:1.8rem;color:#25d366"></i>
+                </div>
+                <h5 style="font-weight:700;margin-bottom:.5rem">Did you send the message?</h5>
+                <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:1.5rem">
+                    Confirm only if you actually sent the message in WhatsApp.<br>
+                    Clicking <strong style="color:#ef4444">No</strong> will keep your form filled so you can try again.
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" id="waSentNo" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> No, I Did Not Send
+                    </button>
+                    <button type="button" id="waSentYes" class="btn" style="background:#25d366;color:#fff;font-weight:600">
+                        <i class="bi bi-check-lg me-1"></i> Yes, I Sent It
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Delete Log Entries Confirmation Modal ──────────────────────────── -->
+<div class="modal fade" id="waDeleteConfirmModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+        <div class="modal-content" style="border-top:3px solid #ef4444">
+            <div class="modal-body text-center" style="padding:2rem">
+                <div style="width:64px;height:64px;border-radius:50%;background:rgba(239,68,68,.15);display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem">
+                    <i class="bi bi-trash" style="font-size:1.8rem;color:#ef4444"></i>
+                </div>
+                <h5 style="font-weight:700;margin-bottom:.5rem">Delete Log Entries?</h5>
+                <p id="waDeleteMsg" style="color:var(--text-muted);font-size:.88rem;margin-bottom:1.5rem">
+                    This cannot be undone.
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </button>
+                    <button type="button" id="waDeleteYes" class="btn btn-danger" style="font-weight:600">
+                        <i class="bi bi-trash me-1"></i> Yes, Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Custom Template Modal -->
 <div class="modal fade" id="customTplModal" tabindex="-1">
@@ -547,6 +612,8 @@ function clearStudent() {
 }
 
 // ── Send WhatsApp ─────────────────────────────────────────────────────────
+let _waPendingLog = null; // holds log data until user confirms
+
 function sendWhatsApp() {
     const phone   = document.getElementById('waPhone').value.trim();
     const message = document.getElementById('waMessage').value.trim();
@@ -555,8 +622,8 @@ function sendWhatsApp() {
     if (!phone)   { showToast('Please enter a WhatsApp number.', 'danger'); return; }
     if (!message) { showToast('Please write a message.', 'danger'); return; }
 
-    // Capture all log fields BEFORE any action
-    const logData = {
+    // Capture log data BEFORE opening WA (form still filled at this point)
+    _waPendingLog = {
         phone:          phone,
         message:        message,
         msg_type:       msgType,
@@ -569,27 +636,40 @@ function sendWhatsApp() {
         class_timing:   document.getElementById('waTiming').value,
     };
 
-    // Open WhatsApp
+    // Open WhatsApp in new tab
     const clean = phone.replace(/[^0-9]/g, '');
     const num   = clean.startsWith('0') ? '92' + clean.slice(1) : clean;
     window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(message), '_blank');
 
-    // Clear compose form immediately
+    // Show "Did you send?" modal — user comes back from WhatsApp and sees this
+    new bootstrap.Modal(document.getElementById('waSendConfirmModal')).show();
+}
+
+// "Yes, I Sent It" — log and clear
+document.getElementById('waSentYes').addEventListener('click', function() {
+    bootstrap.Modal.getInstance(document.getElementById('waSendConfirmModal')).hide();
+    if (!_waPendingLog) return;
+
+    const fd = new FormData();
+    fd.append('action', 'log');
+    Object.entries(_waPendingLog).forEach(([k, v]) => fd.append(k, v));
+    _waPendingLog = null;
+
     clearStudent();
     document.getElementById('waMessage').value = '';
     document.getElementById('msgType').value   = 'custom';
     updateCount();
 
-    // Log via AJAX then reload
-    const fd = new FormData();
-    fd.append('action', 'log');
-    Object.entries(logData).forEach(([k, v]) => fd.append(k, v));
-
     fetch('whatsapp.php', { method: 'POST', body: fd })
         .then(r => r.json())
         .then(() => location.reload())
-        .catch(() => showToast('WhatsApp opened but log failed to save.', 'warning'));
-}
+        .catch(() => showToast('Log failed to save.', 'warning'));
+});
+
+// "No, I Did Not Send" — discard log, keep form filled
+document.getElementById('waSentNo').addEventListener('click', function() {
+    _waPendingLog = null;
+});
 
 function copyMsg() {
     const txt = document.getElementById('waMessage').value;
@@ -631,24 +711,25 @@ function confirmDeleteLogs() {
     const checked = document.querySelectorAll('.log-cb:checked');
     if (!checked.length) return;
     const count = checked.length;
-    tbsConfirm(
-        'Delete ' + count + ' selected log ' + (count === 1 ? 'entry' : 'entries') + '? This cannot be undone.',
-        function() {
-            // Populate hidden inputs then submit
-            const cont = document.getElementById('deleteIdsContainer');
-            cont.innerHTML = '';
-            checked.forEach(cb => {
-                const inp = document.createElement('input');
-                inp.type  = 'hidden';
-                inp.name  = 'log_ids[]';
-                inp.value = cb.value;
-                cont.appendChild(inp);
-            });
-            document.getElementById('deleteLogsForm').submit();
-        },
-        { type: 'danger', icon: 'bi-trash', yesLabel: 'Yes, Delete' }
-    );
+    document.getElementById('waDeleteMsg').textContent =
+        'Delete ' + count + ' selected log ' + (count === 1 ? 'entry' : 'entries') + '? This cannot be undone.';
+    new bootstrap.Modal(document.getElementById('waDeleteConfirmModal')).show();
 }
+
+document.getElementById('waDeleteYes').addEventListener('click', function() {
+    bootstrap.Modal.getInstance(document.getElementById('waDeleteConfirmModal')).hide();
+    const checked = document.querySelectorAll('.log-cb:checked');
+    const cont    = document.getElementById('deleteIdsContainer');
+    cont.innerHTML = '';
+    checked.forEach(cb => {
+        const inp = document.createElement('input');
+        inp.type  = 'hidden';
+        inp.name  = 'log_ids[]';
+        inp.value = cb.value;
+        cont.appendChild(inp);
+    });
+    document.getElementById('deleteLogsForm').submit();
+});
 
 // ── Log checkboxes ────────────────────────────────────────────────────────
 const selectAll = document.getElementById('selectAll');

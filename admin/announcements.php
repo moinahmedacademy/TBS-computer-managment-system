@@ -182,7 +182,7 @@ $typeColors = ['holiday'=>'danger','test'=>'warning','course'=>'info','event'=>'
                     </div>
                     <div class="col-12">
                         <div class="form-check">
-                            <input type="checkbox" name="is_pinned" id="pin_add" class="form-check-input" style="background:var(--surface2);border-color:var(--border)">
+                            <input type="checkbox" name="is_pinned" id="pin_add" class="form-check-input">
                             <label for="pin_add" class="form-check-label form-label">Pin to top</label>
                         </div>
                     </div>

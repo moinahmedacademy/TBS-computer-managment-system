@@ -46,6 +46,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: whatsapp.php'); exit;
     }
 
+    // Delete selected log entries
+    if ($action === 'delete_logs') {
+        $ids = array_filter(array_map('intval', (array)($_POST['log_ids'] ?? [])));
+        if ($ids) {
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            db()->execute("DELETE FROM whatsapp_logs WHERE id IN ($placeholders)", $ids);
+            flashMessage('success', count($ids) . ' log ' . (count($ids) === 1 ? 'entry' : 'entries') . ' deleted.');
+        }
+        header('Location: whatsapp.php'); exit;
+    }
+
     // Log message (AJAX call from JS after WA window opens)
     if ($action === 'log') {
         $phone     = sanitize($_POST['phone'] ?? '');
@@ -268,12 +279,28 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
         <div class="data-card">
             <div class="data-card-header">
                 <div class="data-card-title">Sent Messages Log</div>
-                <span style="font-size:.75rem;color:var(--text-muted)">Last 100 messages</span>
+                <span style="font-size:.75rem;color:var(--text-muted)"><?= count($logs) ?> message(s)</span>
             </div>
+
+            <!-- Delete toolbar (hidden until a row is checked) -->
+            <div id="logToolbar" style="display:none;padding:.6rem 1rem;background:rgba(239,68,68,.07);border-bottom:1px solid rgba(239,68,68,.2);display:none;align-items:center;gap:.75rem;flex-wrap:wrap">
+                <span id="selCount" style="font-size:.82rem;color:var(--text-muted)">0 selected</span>
+                <form method="POST" id="deleteLogsForm" onsubmit="return confirmDelete(this,'Delete selected log entries? This cannot be undone.')">
+                    <input type="hidden" name="action" value="delete_logs">
+                    <div id="deleteIdsContainer"></div>
+                    <button type="submit" class="btn-icon btn-icon-delete" style="width:auto;padding:.35rem .85rem;gap:.35rem;display:inline-flex;align-items:center;font-size:.8rem">
+                        <i class="bi bi-trash"></i> Delete Selected
+                    </button>
+                </form>
+            </div>
+
             <div class="table-wrap">
-                <table class="table-academy">
+                <table class="table-academy" id="logTable">
                     <thead>
                         <tr>
+                            <th style="width:36px">
+                                <input type="checkbox" id="selectAll" class="form-check-input" title="Select all" style="cursor:pointer">
+                            </th>
                             <th>Student</th>
                             <th>Parent / Phone</th>
                             <th>Course / Batch</th>
@@ -286,6 +313,9 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                     <tbody>
                     <?php if ($logs): foreach ($logs as $log): ?>
                     <tr>
+                        <td style="text-align:center">
+                            <input type="checkbox" class="form-check-input log-cb" value="<?= $log['id'] ?>" style="cursor:pointer">
+                        </td>
                         <!-- Student name + roll -->
                         <td>
                             <?php if (!empty($log['recipient_name'])): ?>
@@ -351,7 +381,7 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                         </td>
                     </tr>
                     <?php endforeach; else: ?>
-                    <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2.5rem">
+                    <tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2.5rem">
                         <i class="bi bi-chat-dots" style="font-size:2rem;display:block;margin-bottom:.5rem"></i>
                         No messages sent yet
                     </td></tr>
@@ -576,6 +606,48 @@ document.addEventListener('click', e => {
     if (!e.target.closest('#studentSearch') && !e.target.closest('#studentListWrap')) {
         wrap.style.display = 'none';
     }
+});
+
+// ── Log checkboxes ────────────────────────────────────────────────────────
+const selectAll = document.getElementById('selectAll');
+const toolbar   = document.getElementById('logToolbar');
+const selCount  = document.getElementById('selCount');
+const idsCont   = document.getElementById('deleteIdsContainer');
+
+function updateToolbar() {
+    const checked = document.querySelectorAll('.log-cb:checked');
+    if (checked.length > 0) {
+        toolbar.style.display = 'flex';
+        selCount.textContent  = checked.length + ' selected';
+        idsCont.innerHTML = '';
+        checked.forEach(cb => {
+            const inp = document.createElement('input');
+            inp.type  = 'hidden';
+            inp.name  = 'log_ids[]';
+            inp.value = cb.value;
+            idsCont.appendChild(inp);
+        });
+    } else {
+        toolbar.style.display = 'none';
+        selectAll.checked = false;
+    }
+}
+
+if (selectAll) {
+    selectAll.addEventListener('change', function() {
+        document.querySelectorAll('.log-cb').forEach(cb => cb.checked = this.checked);
+        updateToolbar();
+    });
+}
+
+document.querySelectorAll('.log-cb').forEach(cb => {
+    cb.addEventListener('change', function() {
+        const all  = document.querySelectorAll('.log-cb');
+        const chkd = document.querySelectorAll('.log-cb:checked');
+        selectAll.checked        = all.length === chkd.length;
+        selectAll.indeterminate  = chkd.length > 0 && chkd.length < all.length;
+        updateToolbar();
+    });
 });
 </script>
 

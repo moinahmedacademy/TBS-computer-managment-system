@@ -503,15 +503,26 @@ function clearStudent() {
 
 // ── Send WhatsApp ─────────────────────────────────────────────────────────
 function sendWhatsApp() {
-    const phone   = document.getElementById('waPhone').value.trim();
-    const message = document.getElementById('waMessage').value.trim();
-    const msgType = document.getElementById('msgType').value;
-    const stuName = document.getElementById('waStudentName').value;
-    const rollNo  = document.getElementById('waRollNo').value;
-    const fatName = document.getElementById('waFatherName').value;
+    const phone      = document.getElementById('waPhone').value.trim();
+    const message    = document.getElementById('waMessage').value.trim();
+    const msgType    = document.getElementById('msgType').value;
 
-    if (!phone) { showToast('Please enter a WhatsApp number.', 'danger'); return; }
+    if (!phone)   { showToast('Please enter a WhatsApp number.', 'danger'); return; }
     if (!message) { showToast('Please write a message.', 'danger'); return; }
+
+    // Capture all log fields BEFORE clearing the form
+    const logData = {
+        phone:          phone,
+        message:        message,
+        msg_type:       msgType,
+        recipient_name: document.getElementById('waStudentName').value,
+        roll_number:    document.getElementById('waRollNo').value,
+        father_name:    document.getElementById('waFatherName').value,
+        parent_name:    document.getElementById('waParentName').value,
+        course_name:    document.getElementById('waCourseName').value,
+        batch_code:     document.getElementById('waBatchCode').value,
+        class_timing:   document.getElementById('waTiming').value,
+    };
 
     // Clean phone number
     const clean = phone.replace(/[^0-9]/g, '');
@@ -520,29 +531,24 @@ function sendWhatsApp() {
     // Open WhatsApp
     window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(message), '_blank');
 
-    // Log via AJAX
+    // Clear compose form immediately so it's ready for next message
+    clearStudent();
+    document.getElementById('waMessage').value = '';
+    document.getElementById('msgType').value   = 'custom';
+    updateCount();
+
+    // Show feedback banner
+    document.getElementById('sendFeedback').style.display = '';
+
+    // Log via AJAX then reload to show updated log
     const fd = new FormData();
-    fd.append('action',         'log');
-    fd.append('phone',          phone);
-    fd.append('message',        message);
-    fd.append('msg_type',       msgType);
-    fd.append('recipient_name', stuName);
-    fd.append('roll_number',    rollNo);
-    fd.append('father_name',    fatName);
-    fd.append('parent_name',    document.getElementById('waParentName').value);
-    fd.append('course_name',    document.getElementById('waCourseName').value);
-    fd.append('batch_code',     document.getElementById('waBatchCode').value);
-    fd.append('class_timing',   document.getElementById('waTiming').value);
+    fd.append('action', 'log');
+    Object.entries(logData).forEach(([k, v]) => fd.append(k, v));
 
     fetch('whatsapp.php', { method: 'POST', body: fd })
         .then(r => r.json())
-        .then(() => {
-            const fb = document.getElementById('sendFeedback');
-            fb.style.display = '';
-            setTimeout(() => fb.style.display = 'none', 4000);
-            // Refresh log table after short delay
-            setTimeout(() => location.reload(), 2000);
-        }).catch(() => {});
+        .then(() => location.reload())
+        .catch(() => showToast('Message sent but log failed to save.', 'warning'));
 }
 
 function copyMsg() {

@@ -95,6 +95,7 @@ body {
 }
 .logo-wrap h1 { font-size: 1.4rem; font-weight: 700; color: var(--text); }
 .logo-wrap p { color: var(--text-muted); font-size: .85rem; margin-top: .25rem; }
+.login-logo { width: 90px; height: 90px; object-fit: contain; margin-bottom: .75rem; display: block; margin-left: auto; margin-right: auto; }
 
 .form-label { color: var(--text-muted); font-size: .85rem; font-weight: 500; margin-bottom: .4rem; }
 .form-control {
@@ -150,7 +151,9 @@ body {
 
 <div class="login-card">
     <div class="logo-wrap">
-        <div class="logo-icon">⭐</div>
+        <img src="assets/uploads/logo.png" alt="TBS Logo" class="login-logo"
+             onerror="this.style.display='none';document.getElementById('fallbackIcon').style.display='inline-flex'">
+        <div class="logo-icon" id="fallbackIcon" style="display:none">⭐</div>
         <h1>The Brighten Stars Academy</h1>
         <p>Institute Management System</p>
     </div>

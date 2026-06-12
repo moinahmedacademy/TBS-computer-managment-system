@@ -20,16 +20,24 @@ $student   = db()->fetchOne("SELECT s.*, c.name as course_name FROM students s L
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/admin.css">
 <style>
+.brand-logo-wrap { width:40px;height:40px;flex-shrink:0; }
+.brand-logo { width:40px;height:40px;object-fit:contain;border-radius:8px; }
 .sidebar-link.active { background: rgba(16,185,129,.15); color: #10b981; }
 .sidebar-link.active::before { background: #10b981; }
 .brand-icon { background: linear-gradient(135deg, #10b981, #059669) !important; }
 .btn-primary-academy { background: linear-gradient(135deg, #10b981, #059669) !important; }
 </style>
 </head>
+<script>window.BASE_URL = '<?= BASE_URL ?>';</script>
+</head>
 <body>
 <div class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-        <span class="brand-icon">👨‍👩‍👦</span>
+        <div class="brand-logo-wrap">
+            <img src="<?= BASE_URL ?>/assets/uploads/logo.png" alt="TBS" class="brand-logo"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <span class="brand-icon" style="display:none">👨‍👩‍👦</span>
+        </div>
         <div class="brand-text">
             <span class="brand-name">Parent Portal</span>
             <span class="brand-sub" style="color:#10b981"><?= sanitize($student['name'] ?? '') ?></span>
@@ -59,6 +67,7 @@ $student   = db()->fetchOne("SELECT s.*, c.name as course_name FROM students s L
     </a>
 </div>
 
+<div class="overlay" id="overlay"></div>
 <div class="main-wrapper" id="mainWrapper">
     <div class="topbar">
         <div class="d-flex align-items-center gap-3">

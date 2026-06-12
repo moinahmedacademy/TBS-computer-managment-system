@@ -25,16 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($action === 'add') {
             $userId = null;
             if ($createLogin && $email) {
-                $hashedPw = password_hash($password ?: 'Parent@123', PASSWORD_DEFAULT);
                 $existing = db()->fetchOne("SELECT id FROM users WHERE email=?", [$email]);
                 if (!$existing) {
                     $userId = db()->insert(
-                        "INSERT INTO users (name,email,password,role,phone) VALUES (?,?,'$hashedPw','parent',?)",
-                        [$name, $email, $phone]
-                    );
-                    $userId = db()->insert(
-                        "INSERT INTO users (name,email,password,role,phone) VALUES (?,?,?,?,?)",
-                        [$name, $email, password_hash($password ?: 'Parent@123', PASSWORD_DEFAULT), 'parent', $phone]
+                        "INSERT INTO users (name,email,password,role,phone,status) VALUES (?,?,?,'parent',?,'active')",
+                        [$name, $email, password_hash($password ?: 'Parent@123', PASSWORD_DEFAULT), $phone]
                     );
                 }
             }
@@ -126,17 +121,23 @@ $students = db()->fetchAll("SELECT id,name,roll_number FROM students WHERE statu
                 </td>
                 <td>
                     <div class="d-flex gap-1">
-                        <button class="btn-icon btn-icon-edit" onclick="editParent(<?= htmlspecialchars(json_encode($p)) ?>)">
+                        <button class="btn-icon btn-icon-edit" title="Edit" onclick="editParent(<?= htmlspecialchars(json_encode($p)) ?>)">
                             <i class="bi bi-pencil"></i>
                         </button>
-                        <a href="whatsapp.php?phone=<?= urlencode($p['whatsapp'] ?: $p['phone']) ?>&student_id=<?= $p['student_id'] ?>"
-                            class="btn-icon btn-icon-wa" title="Send WhatsApp">
+                        <?php $waNum = $p['whatsapp'] ?: $p['phone']; ?>
+                        <button class="btn-icon btn-icon-wa" title="Send WhatsApp"
+                            onclick="openWhatsApp('<?= sanitize($waNum) ?>','Dear <?= sanitize($p[\'name\']) ?>, this is a message from The Brighten Stars Academy regarding your child <?= sanitize($p[\'student_name\'] ?? \'\') ?>.')">
                             <i class="bi bi-whatsapp"></i>
+                        </button>
+                        <a href="<?= BASE_URL ?>/admin/results.php?student=<?= $p['student_id'] ?>"
+                           class="btn-icon" title="View Results"
+                           style="background:rgba(139,92,246,.15);color:#8b5cf6;border:none;border-radius:7px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center">
+                            <i class="bi bi-bar-chart"></i>
                         </a>
-                        <form method="POST" onsubmit="return confirmDelete(this)">
+                        <form method="POST" onsubmit="return confirmDelete(this,'Parent <?= sanitize($p[\'name\']) ?> will be deleted.')">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<?= $p['id'] ?>">
-                            <button type="submit" class="btn-icon btn-icon-delete"><i class="bi bi-trash"></i></button>
+                            <button type="submit" class="btn-icon btn-icon-delete" title="Delete"><i class="bi bi-trash"></i></button>
                         </form>
                     </div>
                 </td>

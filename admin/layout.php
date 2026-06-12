@@ -2,28 +2,34 @@
 require_once dirname(__DIR__) . '/includes/auth.php';
 require_once dirname(__DIR__) . '/includes/functions.php';
 requireRole('admin');
-$currentPage = basename($_SERVER['PHP_SELF'], '.php');
-$instituteName = getSetting('institute_name') ?: SITE_NAME;
+$currentPage   = basename($_SERVER['PHP_SELF'], '.php');
+$instituteName = 'The Brighten Stars Academy';
+$logoPath      = BASE_URL . '/assets/uploads/logo.png';
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><?= sanitize($pageTitle ?? 'Dashboard') ?> – <?= sanitize($instituteName) ?></title>
+<title><?= sanitize($pageTitle ?? 'Dashboard') ?> – <?= $instituteName ?></title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/admin.css">
+<script>window.BASE_URL = '<?= BASE_URL ?>';</script>
 </head>
 <body>
 
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-        <span class="brand-icon">⭐</span>
+        <div class="brand-logo-wrap">
+            <img src="<?= $logoPath ?>" alt="TBS Logo" class="brand-logo"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <span class="brand-icon" style="display:none">⭐</span>
+        </div>
         <div class="brand-text">
             <span class="brand-name">Brighten Stars</span>
-            <span class="brand-sub">Academy</span>
+            <span class="brand-sub">Admin Panel</span>
         </div>
     </div>
 
@@ -75,10 +81,13 @@ $instituteName = getSetting('institute_name') ?: SITE_NAME;
     <a href="<?= BASE_URL ?>/admin/settings.php" class="sidebar-link <?= $currentPage==='settings'?'active':'' ?>">
         <i class="bi bi-gear"></i> Settings
     </a>
-    <a href="<?= BASE_URL ?>/logout.php" class="sidebar-link text-danger">
+    <a href="<?= BASE_URL ?>/logout.php" class="sidebar-link" style="color:#ef4444">
         <i class="bi bi-box-arrow-left"></i> Logout
     </a>
 </div>
+
+<!-- Mobile overlay -->
+<div class="overlay" id="overlay"></div>
 
 <!-- Main Content -->
 <div class="main-wrapper" id="mainWrapper">
@@ -94,6 +103,10 @@ $instituteName = getSetting('institute_name') ?: SITE_NAME;
             <div class="topbar-date d-none d-md-block">
                 <i class="bi bi-calendar3 me-1"></i><?= date('l, d M Y') ?>
             </div>
+            <!-- Quick WhatsApp broadcast -->
+            <a href="<?= BASE_URL ?>/admin/whatsapp.php" class="btn-toggle d-none d-sm-flex" title="WhatsApp Broadcast" style="color:#25d366;border-color:rgba(37,211,102,.3)">
+                <i class="bi bi-whatsapp"></i>
+            </a>
             <div class="user-badge">
                 <div class="user-avatar"><?= strtoupper(substr($_SESSION['user_name'], 0, 1)) ?></div>
                 <div class="d-none d-sm-block">
@@ -107,3 +120,8 @@ $instituteName = getSetting('institute_name') ?: SITE_NAME;
     <!-- Page Content -->
     <div class="page-content">
         <?php showFlash(); ?>
+
+<style>
+.brand-logo-wrap { width:40px;height:40px;flex-shrink:0; }
+.brand-logo { width:40px;height:40px;object-fit:contain;border-radius:8px; }
+</style>

@@ -22,10 +22,16 @@ $instituteName = getSetting('institute_name') ?: SITE_NAME;
 .stat-card::before { background: linear-gradient(90deg, #3b82f6, #2563eb) !important; }
 </style>
 </head>
+<script>window.BASE_URL = '<?= BASE_URL ?>';</script>
+</head>
 <body>
 <div class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-        <span class="brand-icon">🎓</span>
+        <div class="brand-logo-wrap">
+            <img src="<?= BASE_URL ?>/assets/uploads/logo.png" alt="TBS" class="brand-logo"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <span class="brand-icon" style="display:none">🎓</span>
+        </div>
         <div class="brand-text">
             <span class="brand-name">Student Portal</span>
             <span class="brand-sub" style="color:#3b82f6"><?= sanitize($_SESSION['roll_number'] ?? '') ?></span>
@@ -58,6 +64,7 @@ $instituteName = getSetting('institute_name') ?: SITE_NAME;
     </a>
 </div>
 
+<div class="overlay" id="overlay"></div>
 <div class="main-wrapper" id="mainWrapper">
     <div class="topbar">
         <div class="d-flex align-items-center gap-3">

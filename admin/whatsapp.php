@@ -574,8 +574,9 @@ function sendWhatsApp() {
     const waUrl = 'https://wa.me/' + num + '?text=' + encodeURIComponent(message);
 
     // Show confirmation FIRST — before opening WhatsApp so dialog is visible
+    const recipient = logData.recipient_name || phone;
     tbsConfirm(
-        'Open WhatsApp and send this message to <strong>' + (logData.recipient_name || phone) + '</strong>?',
+        'Send this message to ' + recipient + ' via WhatsApp?',
         function() {
             // Open WhatsApp
             window.open(waUrl, '_blank');
@@ -596,12 +597,7 @@ function sendWhatsApp() {
                 .then(() => location.reload())
                 .catch(() => showToast('WhatsApp opened but log failed to save.', 'warning'));
         },
-        {
-            type:     'info',
-            icon:     'bi-whatsapp',
-            yesLabel: 'Yes, Open WhatsApp',
-            noLabel:  'Cancel'
-        }
+        { type: 'info', icon: 'bi-whatsapp', yesLabel: 'Yes, Open WhatsApp', noLabel: 'Cancel' }
     );
 }
 

@@ -15,7 +15,10 @@ $logoPath      = BASE_URL . '/assets/uploads/logo.png';
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/admin.css">
-<script>window.BASE_URL = '<?= BASE_URL ?>';</script>
+<script>
+window.BASE_URL       = '<?= BASE_URL ?>';
+window.SESSION_TIMEOUT = <?= SESSION_LIFETIME ?>;
+</script>
 </head>
 <body>
 

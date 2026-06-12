@@ -10,18 +10,26 @@ if (isLoggedIn()) {
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email    = trim($_POST['email'] ?? '');
-    $password = trim($_POST['password'] ?? '');
-
-    if (!$email || !$password) {
-        $error = 'Please enter email and password.';
+    // CSRF check
+    $token = $_POST['csrf_token'] ?? '';
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
+        $error = 'Security check failed. Please refresh and try again.';
     } else {
-        $role = login($email, $password);
-        if ($role) {
-            header("Location: " . BASE_URL . "/$role/dashboard.php");
-            exit;
+        $email    = trim($_POST['email'] ?? '');
+        $password = trim($_POST['password'] ?? '');
+
+        if (!$email || !$password) {
+            $error = 'Please enter email and password.';
         } else {
-            $error = 'Invalid email or password. Please try again.';
+            $result = login($email, $password);
+            if ($result === 'rate_limited') {
+                $error = 'Too many failed attempts. Please wait 15 minutes before trying again.';
+            } elseif ($result) {
+                header("Location: " . BASE_URL . "/$result/dashboard.php");
+                exit;
+            } else {
+                $error = 'Invalid email or password. Please try again.';
+            }
         }
     }
 }
@@ -95,7 +103,6 @@ body {
 }
 .logo-wrap h1 { font-size: 1.4rem; font-weight: 700; color: var(--text); }
 .logo-wrap p { color: var(--text-muted); font-size: .85rem; margin-top: .25rem; }
-.login-logo { width: 90px; height: 90px; object-fit: contain; margin-bottom: .75rem; display: block; margin-left: auto; margin-right: auto; }
 
 .form-label { color: var(--text-muted); font-size: .85rem; font-weight: 500; margin-bottom: .4rem; }
 .form-control {
@@ -151,9 +158,7 @@ body {
 
 <div class="login-card">
     <div class="logo-wrap">
-        <img src="assets/uploads/logo.png" alt="TBS Logo" class="login-logo"
-             onerror="this.style.display='none';document.getElementById('fallbackIcon').style.display='inline-flex'">
-        <div class="logo-icon" id="fallbackIcon" style="display:none">⭐</div>
+        <div class="logo-icon">⭐</div>
         <h1>The Brighten Stars Academy</h1>
         <p>Institute Management System</p>
     </div>
@@ -166,6 +171,7 @@ body {
     <?php endif; ?>
 
     <form method="POST" novalidate>
+        <?= csrfField() ?>
         <div class="mb-3">
             <label class="form-label">Email Address</label>
             <div class="input-group">

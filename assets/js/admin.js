@@ -78,8 +78,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 25);
     });
 
-    // ⑥ AUTO-LOGOUT after 20 min idle (configurable)
-    initAutoLogout(20);
+    // ⑥ AUTO-LOGOUT – timeout driven by PHP SESSION_LIFETIME constant
+    initAutoLogout(window.SESSION_TIMEOUT || 20);
 
     // ⑦ LIVE REFRESH – update stat cards every 60 s (admin only)
     if (document.querySelector('.stat-card[data-stat]')) {

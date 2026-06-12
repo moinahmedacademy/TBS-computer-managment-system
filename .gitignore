@@ -1,7 +1,0 @@
-includes/config.php
-test_login.php
-admin/uploads/
-assets/uploads/
-secure_files/
-*.log
-.DS_Store

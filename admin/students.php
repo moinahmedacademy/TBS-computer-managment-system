@@ -12,6 +12,7 @@ $CLASS_TIMINGS = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrf();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add' || $action === 'edit') {
@@ -36,13 +37,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Handle photo upload
         $photoPath = null;
-        if (!empty($_FILES['photo']['name'])) {
+        if (!empty($_FILES['photo']['name']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
             $uploadDir = dirname(__DIR__) . '/assets/uploads/students/';
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
-            $ext      = strtolower(pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION));
-            $allowed  = ['jpg','jpeg','png','webp'];
-            if (in_array($ext, $allowed) && $_FILES['photo']['size'] < 2 * 1024 * 1024) {
-                $fname    = 'stu_' . time() . '_' . rand(100,999) . '.' . $ext;
+            $ext     = strtolower(pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION));
+            $allowed = ['jpg','jpeg','png','webp'];
+            // Verify actual file content, not just extension
+            $finfo    = new finfo(FILEINFO_MIME_TYPE);
+            $realMime = $finfo->file($_FILES['photo']['tmp_name']);
+            $imgMimes = ['image/jpeg','image/png','image/webp'];
+            if (in_array($ext, $allowed) && in_array($realMime, $imgMimes) && $_FILES['photo']['size'] < 2 * 1024 * 1024) {
+                $fname = 'stu_' . bin2hex(random_bytes(8)) . '.' . $ext;
                 if (move_uploaded_file($_FILES['photo']['tmp_name'], $uploadDir . $fname)) {
                     $photoPath = 'assets/uploads/students/' . $fname;
                 }
@@ -70,7 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 [$userId,$rollNo,$name,$fatherName,$phone,$email,$cnic,$dob?:null,$gender,$address,$courseId,$batch,$timing,$enrollDate,$photoPath]
             );
-            flashMessage('success', "✅ Student <strong>$name</strong> added. Roll: <strong>$rollNo</strong> | Login: <strong>$loginEmail</strong> | Pass: <strong>" . ($password ?: 'Student@123') . "</strong>");
+            // Do NOT show the password on screen — send it via WhatsApp or share privately
+            flashMessage('success', "✅ Student <strong>" . sanitize($name) . "</strong> added. Roll: <strong>" . sanitize($rollNo) . "</strong> | Login email: <strong>" . sanitize($loginEmail) . "</strong>. Please share login credentials privately.");
 
         } else {
             $id = (int)($_POST['id'] ?? 0);
@@ -273,6 +279,7 @@ $courses  = db()->fetchAll("SELECT id, name FROM courses WHERE status='active' O
                                   onsubmit="return confirmDelete(this, <?= json_encode($delMsg) ?>)">
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="id" value="<?= $s['id'] ?>">
+                                <?= csrfField() ?>
                                 <button type="submit" class="btn-icon btn-icon-delete" title="Delete">
                                     <i class="bi bi-trash"></i>
                                 </button>
@@ -297,6 +304,7 @@ $courses  = db()->fetchAll("SELECT id, name FROM courses WHERE status='active' O
         <div class="modal-content">
             <form method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="add">
+                <?= csrfField() ?>
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Add New Student</h5>
                     <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal"></button>
@@ -396,6 +404,7 @@ $courses  = db()->fetchAll("SELECT id, name FROM courses WHERE status='active' O
             <form method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="edit">
                 <input type="hidden" name="id" id="edit_id">
+                <?= csrfField() ?>
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit Student</h5>
                     <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal"></button>
@@ -457,6 +466,7 @@ $courses  = db()->fetchAll("SELECT id, name FROM courses WHERE status='active' O
             <form method="POST">
                 <input type="hidden" name="action" value="complete_enroll">
                 <input type="hidden" name="id" id="enroll_id">
+                <?= csrfField() ?>
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-arrow-repeat me-2"></i>New Course Enrollment</h5>
                     <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal"></button>

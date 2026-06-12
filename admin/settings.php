@@ -3,6 +3,7 @@ $pageTitle = 'Settings';
 require_once __DIR__ . '/layout.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrf();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'save_general') {
@@ -62,6 +63,7 @@ $clientIP   = $_SERVER['REMOTE_ADDR'] ?? '';
             <div class="form-section-title"><i class="bi bi-gear"></i> General Settings</div>
             <form method="POST">
                 <input type="hidden" name="action" value="save_general">
+                <?= csrfField() ?>
                 <div class="row g-3">
                     <div class="col-12">
                         <label class="form-label">Institute Name</label>
@@ -100,6 +102,7 @@ $clientIP   = $_SERVER['REMOTE_ADDR'] ?? '';
             </div>
             <form method="POST">
                 <input type="hidden" name="action" value="save_whatsapp">
+                <?= csrfField() ?>
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label">Instance ID</label>
@@ -121,6 +124,7 @@ $clientIP   = $_SERVER['REMOTE_ADDR'] ?? '';
             <div class="form-section-title"><i class="bi bi-key"></i> Change Password</div>
             <form method="POST">
                 <input type="hidden" name="action" value="change_password">
+                <?= csrfField() ?>
                 <div class="row g-3">
                     <div class="col-12">
                         <label class="form-label">Current Password</label>
@@ -161,6 +165,7 @@ $clientIP   = $_SERVER['REMOTE_ADDR'] ?? '';
 
             <form method="POST" class="mb-3">
                 <input type="hidden" name="action" value="add_ip">
+                <?= csrfField() ?>
                 <div class="row g-2">
                     <div class="col-7">
                         <input type="text" name="ip_address" class="form-control" placeholder="192.168.1.0" required>
@@ -191,6 +196,7 @@ $clientIP   = $_SERVER['REMOTE_ADDR'] ?? '';
                 <form method="POST">
                     <input type="hidden" name="action" value="delete_ip">
                     <input type="hidden" name="id" value="<?= $ip['id'] ?>">
+                    <?= csrfField() ?>
                     <button type="submit" class="btn-icon btn-icon-delete" style="width:24px;height:24px;font-size:.75rem">
                         <i class="bi bi-x-lg"></i>
                     </button>

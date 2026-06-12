@@ -3,6 +3,7 @@ $pageTitle = 'Tests';
 require_once __DIR__ . '/layout.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrf();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add' || $action === 'edit') {
@@ -89,6 +90,7 @@ $tests = db()->fetchAll(
                         <form method="POST" onsubmit="return confirmDelete(this)">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<?= $t['id'] ?>">
+                            <?= csrfField() ?>
                             <button type="submit" class="btn-icon btn-icon-delete"><i class="bi bi-trash"></i></button>
                         </form>
                     </div>
@@ -108,6 +110,7 @@ $tests = db()->fetchAll(
         <div class="modal-content">
             <form method="POST">
                 <input type="hidden" name="action" value="add">
+                <?= csrfField() ?>
                 <div class="modal-header">
                     <h5 class="modal-title">Create Test</h5>
                     <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal"></button>
@@ -171,6 +174,7 @@ $tests = db()->fetchAll(
             <form method="POST">
                 <input type="hidden" name="action" value="edit">
                 <input type="hidden" name="id" id="et_id">
+                <?= csrfField() ?>
                 <div class="modal-header">
                     <h5 class="modal-title">Edit Test</h5>
                     <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal"></button>

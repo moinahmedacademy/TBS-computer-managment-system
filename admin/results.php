@@ -3,6 +3,7 @@ $pageTitle = 'Results';
 require_once __DIR__ . '/layout.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrf();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'save_marks') {
@@ -129,6 +130,7 @@ if ($testId) {
     <form method="POST">
         <input type="hidden" name="action" value="save_marks">
         <input type="hidden" name="test_id" value="<?= $testId ?>">
+        <?= csrfField() ?>
         <div class="table-wrap">
             <table class="table-academy">
                 <thead>

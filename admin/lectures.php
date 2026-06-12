@@ -3,6 +3,7 @@ $pageTitle = 'Lectures';
 require_once __DIR__ . '/layout.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrf();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add') {
@@ -114,6 +115,7 @@ $fileClasses = ['pdf'=>'file-pdf','doc'=>'file-doc','docx'=>'file-doc','ppt'=>'f
                         <form method="POST" onsubmit="return confirmDelete(this)">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<?= $l['id'] ?>">
+                            <?= csrfField() ?>
                             <button type="submit" class="btn-icon btn-icon-delete"><i class="bi bi-trash"></i></button>
                         </form>
                     </div>
@@ -133,6 +135,7 @@ $fileClasses = ['pdf'=>'file-pdf','doc'=>'file-doc','docx'=>'file-doc','ppt'=>'f
         <div class="modal-content">
             <form method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="add">
+                <?= csrfField() ?>
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-upload me-2"></i>Upload Lecture</h5>
                     <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal"></button>

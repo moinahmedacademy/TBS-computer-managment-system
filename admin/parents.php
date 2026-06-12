@@ -3,6 +3,7 @@ $pageTitle = 'Parents';
 require_once __DIR__ . '/layout.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrf();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add' || $action === 'edit') {
@@ -37,8 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 "INSERT INTO parents (user_id,student_id,name,relation,phone,whatsapp,email,cnic,address) VALUES (?,?,?,?,?,?,?,?,?)",
                 [$userId, $studentId, $name, $relation, $phone, $whatsapp, $email, $cnic, $address]
             );
-            $msg = "Parent '$name' added.";
-            if ($userId) $msg .= " Login: $email | Pass: " . ($password ?: 'Parent@123');
+            $msg = "Parent '" . sanitize($name) . "' added.";
+            if ($userId) $msg .= " Login email: <strong>" . sanitize($email) . "</strong>. Share credentials privately.";
             flashMessage('success', $msg);
         } else {
             $id = (int)$_POST['id'];
@@ -113,7 +114,8 @@ $students = db()->fetchAll("SELECT id,name,roll_number FROM students WHERE statu
                 <td style="font-size:.83rem"><?= sanitize($p['phone']) ?></td>
                 <td>
                     <?php if ($p['whatsapp']): ?>
-                    <a href="https://wa.me/<?= preg_replace('/[^0-9]/','',str_replace('0','92',$p['whatsapp'],1)) ?>"
+                    <?php $waFormatted = preg_replace('/[^0-9]/', '', $p['whatsapp']); if (substr($waFormatted,0,1)==='0') $waFormatted='92'.substr($waFormatted,1); ?>
+                    <a href="https://wa.me/<?= $waFormatted ?>"
                         target="_blank" class="btn-whatsapp" style="padding:.3rem .7rem;font-size:.78rem">
                         <i class="bi bi-whatsapp"></i> <?= sanitize($p['whatsapp']) ?>
                     </a>
@@ -138,6 +140,7 @@ $students = db()->fetchAll("SELECT id,name,roll_number FROM students WHERE statu
                         <form method="POST" onsubmit="return confirmDelete(this,'Parent <?= sanitize($p[\'name\']) ?> will be deleted.')">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<?= $p['id'] ?>">
+                            <?= csrfField() ?>
                             <button type="submit" class="btn-icon btn-icon-delete" title="Delete"><i class="bi bi-trash"></i></button>
                         </form>
                     </div>
@@ -157,6 +160,7 @@ $students = db()->fetchAll("SELECT id,name,roll_number FROM students WHERE statu
         <div class="modal-content">
             <form method="POST">
                 <input type="hidden" name="action" value="add">
+                <?= csrfField() ?>
                 <div class="modal-header">
                     <h5 class="modal-title">Add Parent</h5>
                     <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal"></button>
@@ -230,6 +234,7 @@ $students = db()->fetchAll("SELECT id,name,roll_number FROM students WHERE statu
             <form method="POST">
                 <input type="hidden" name="action" value="edit">
                 <input type="hidden" name="id" id="ep_id">
+                <?= csrfField() ?>
                 <div class="modal-header">
                     <h5 class="modal-title">Edit Parent</h5>
                     <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal"></button>

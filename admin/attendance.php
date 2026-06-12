@@ -3,6 +3,7 @@ $pageTitle = 'Attendance';
 require_once __DIR__ . '/layout.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrf();
     $action = $_POST['action'] ?? '';
     if ($action === 'mark') {
         $courseId = (int)$_POST['course_id'];
@@ -177,6 +178,7 @@ if ($selectedCourse && in_array($viewMode, ['monthly','full'])) {
         <input type="hidden" name="action" value="mark">
         <input type="hidden" name="course_id" value="<?= $selectedCourse ?>">
         <input type="hidden" name="date" value="<?= $selectedDate ?>">
+        <?= csrfField() ?>
         <div class="table-wrap">
             <table class="table-academy">
                 <thead><tr><th>#</th><th>Student</th><th>Roll No</th><th>Status</th></tr></thead>

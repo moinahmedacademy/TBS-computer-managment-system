@@ -3,6 +3,7 @@ $pageTitle = 'Announcements';
 require_once __DIR__ . '/layout.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrf();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add' || $action === 'edit') {
@@ -91,6 +92,7 @@ $typeColors = ['holiday'=>'danger','test'=>'warning','course'=>'info','event'=>'
                 <form method="POST">
                     <input type="hidden" name="action" value="pin">
                     <input type="hidden" name="id" value="<?= $ann['id'] ?>">
+                    <?= csrfField() ?>
                     <button type="submit" class="btn-icon" style="background:rgba(245,158,11,.1);color:var(--accent)" title="<?= $ann['is_pinned']?'Unpin':'Pin' ?>">
                         <i class="bi bi-pin<?= $ann['is_pinned']?'-fill':'' ?>"></i>
                     </button>
@@ -101,6 +103,7 @@ $typeColors = ['holiday'=>'danger','test'=>'warning','course'=>'info','event'=>'
                 <form method="POST" onsubmit="return confirmDelete(this)">
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="id" value="<?= $ann['id'] ?>">
+                    <?= csrfField() ?>
                     <button type="submit" class="btn-icon btn-icon-delete"><i class="bi bi-trash"></i></button>
                 </form>
             </div>
@@ -124,6 +127,7 @@ $typeColors = ['holiday'=>'danger','test'=>'warning','course'=>'info','event'=>'
         <div class="modal-content">
             <form method="POST">
                 <input type="hidden" name="action" value="add">
+                <?= csrfField() ?>
                 <div class="modal-header">
                     <h5 class="modal-title">New Announcement</h5>
                     <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal"></button>
@@ -192,6 +196,7 @@ $typeColors = ['holiday'=>'danger','test'=>'warning','course'=>'info','event'=>'
             <form method="POST">
                 <input type="hidden" name="action" value="edit">
                 <input type="hidden" name="id" id="ea_id">
+                <?= csrfField() ?>
                 <div class="modal-header">
                     <h5 class="modal-title">Edit Announcement</h5>
                     <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal"></button>

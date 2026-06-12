@@ -8,30 +8,61 @@ $id   = (int)($_GET['id'] ?? 0);
 
 if (!$id) { http_response_code(400); die('Invalid request.'); }
 
-$isAdmin = $_SESSION['user_role'] === 'admin';
+$role      = $_SESSION['user_role'];
+$isAdmin   = $role === 'admin';
 $isAllowed = isAllowedIP();
 
 if ($type === 'lecture') {
     $file = db()->fetchOne("SELECT * FROM lectures WHERE id=?", [$id]);
     if (!$file) { http_response_code(404); die('File not found.'); }
 
-    // Check course access for students
     if (!$isAdmin) {
-        $studentCourse = $_SESSION['course_id'] ?? 0;
-        if ($studentCourse != $file['course_id']) { http_response_code(403); die('Access denied.'); }
+        // Students: must be enrolled in the lecture's course
+        if ($role === 'student') {
+            $studentCourse = $_SESSION['course_id'] ?? 0;
+            if ($studentCourse != $file['course_id']) {
+                http_response_code(403); die('Access denied.');
+            }
+        } elseif ($role === 'parent') {
+            // Parents: child must be enrolled in this course
+            $child = db()->fetchOne(
+                "SELECT course_id FROM students WHERE id=?",
+                [$_SESSION['student_id'] ?? 0]
+            );
+            if (!$child || $child['course_id'] != $file['course_id']) {
+                http_response_code(403); die('Access denied.');
+            }
+        }
 
-        // Download restriction
+        // Download restriction: must be on institute network
         if (!$file['allow_download'] && !$isAllowed) {
             http_response_code(403);
             die('<h3>Access Restricted</h3><p>File download is only allowed from within the institute network.</p>');
         }
     }
+
 } elseif ($type === 'course_file') {
     $file = db()->fetchOne("SELECT * FROM course_files WHERE id=?", [$id]);
     if (!$file) { http_response_code(404); die('File not found.'); }
 
     if (!$isAdmin) {
-        // Check IP for course files
+        // Students: must be in the same course
+        if ($role === 'student') {
+            $studentCourse = $_SESSION['course_id'] ?? 0;
+            if ($studentCourse != $file['course_id']) {
+                http_response_code(403); die('Access denied.');
+            }
+        } elseif ($role === 'parent') {
+            $child = db()->fetchOne(
+                "SELECT course_id FROM students WHERE id=?",
+                [$_SESSION['student_id'] ?? 0]
+            );
+            if (!$child || $child['course_id'] != $file['course_id']) {
+                http_response_code(403); die('Access denied.');
+            }
+        }
+
+        // Require institute network for all non-admin course file downloads
         if (!$isAllowed) {
             http_response_code(403);
             echo '<!DOCTYPE html><html><head><meta charset="UTF-8">
@@ -70,15 +101,14 @@ $mimeTypes = [
     'zip'  => 'application/zip',
 ];
 
-$mime = $mimeTypes[$ext] ?? 'application/octet-stream';
-$displayName = $file['file_name'] ?? basename($filePath);
+$mime        = $mimeTypes[$ext] ?? 'application/octet-stream';
+$displayName = basename($file['file_name'] ?? basename($filePath));
 
-// For PDFs and images, display inline; others force download
-$inline = in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif']);
+$inline      = in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif']);
 $disposition = $inline ? 'inline' : 'attachment';
 
 header('Content-Type: ' . $mime);
-header('Content-Disposition: ' . $disposition . '; filename="' . $displayName . '"');
+header('Content-Disposition: ' . $disposition . '; filename="' . rawurlencode($displayName) . '"');
 header('Content-Length: ' . filesize($filePath));
 header('Cache-Control: private, no-cache, no-store, must-revalidate');
 header('Pragma: no-cache');

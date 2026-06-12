@@ -549,9 +549,9 @@ function clearStudent() {
 
 // ── Send WhatsApp ─────────────────────────────────────────────────────────
 function sendWhatsApp() {
-    const phone      = document.getElementById('waPhone').value.trim();
-    const message    = document.getElementById('waMessage').value.trim();
-    const msgType    = document.getElementById('msgType').value;
+    const phone   = document.getElementById('waPhone').value.trim();
+    const message = document.getElementById('waMessage').value.trim();
+    const msgType = document.getElementById('msgType').value;
 
     if (!phone)   { showToast('Please enter a WhatsApp number.', 'danger'); return; }
     if (!message) { showToast('Please write a message.', 'danger'); return; }
@@ -570,31 +570,39 @@ function sendWhatsApp() {
         class_timing:   document.getElementById('waTiming').value,
     };
 
-    // Clean phone number
+    // Clean phone number and open WhatsApp
     const clean = phone.replace(/[^0-9]/g, '');
     const num   = clean.startsWith('0') ? '92' + clean.slice(1) : clean;
-
-    // Open WhatsApp
     window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(message), '_blank');
 
-    // Clear compose form immediately so it's ready for next message
-    clearStudent();
-    document.getElementById('waMessage').value = '';
-    document.getElementById('msgType').value   = 'custom';
-    updateCount();
+    // Ask if message was actually sent — only log if confirmed
+    tbsConfirm(
+        'Did you send the message in WhatsApp?',
+        function() {
+            // User confirmed — log it and reset form
+            clearStudent();
+            document.getElementById('waMessage').value = '';
+            document.getElementById('msgType').value   = 'custom';
+            updateCount();
 
-    // Show feedback banner
-    document.getElementById('sendFeedback').style.display = '';
+            document.getElementById('sendFeedback').style.display = '';
 
-    // Log via AJAX then reload to show updated log
-    const fd = new FormData();
-    fd.append('action', 'log');
-    Object.entries(logData).forEach(([k, v]) => fd.append(k, v));
+            const fd = new FormData();
+            fd.append('action', 'log');
+            Object.entries(logData).forEach(([k, v]) => fd.append(k, v));
 
-    fetch('whatsapp.php', { method: 'POST', body: fd })
-        .then(r => r.json())
-        .then(() => location.reload())
-        .catch(() => showToast('Message sent but log failed to save.', 'warning'));
+            fetch('whatsapp.php', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(() => location.reload())
+                .catch(() => showToast('Logged locally but server save failed.', 'warning'));
+        },
+        {
+            type:     'info',
+            icon:     'bi-whatsapp',
+            yesLabel: 'Yes, I Sent It',
+            noLabel:  'No, I Did Not Send'
+        }
+    );
 }
 
 function copyMsg() {

@@ -84,22 +84,22 @@ $students = db()->fetchAll(
 
 // Built-in templates
 $builtinTemplates = [
-    ['title'=>'Test Result',      'icon'=>'bi-bar-chart',      'color'=>'#3b82f6',
-     'body' => "*The Brighten Stars Academy*\n\n📊 *Test Result*\n\nDear {Parent Name},\nYour child *{Student Name}* (Roll: {Roll No}) has appeared in:\n\n*Test:* {Test Name}\n*Subject:* {Subject}\n*Marks:* {Obtained}/{Total}\n*Percentage:* {%}%\n*Grade:* {Grade}\n\nKeep up the great work! 🌟\n\n– The Brighten Stars Academy"],
-    ['title'=>'Absent Alert',     'icon'=>'bi-calendar-x',     'color'=>'#ef4444',
-     'body' => "*The Brighten Stars Academy*\n\n⚠️ *Absence Notice*\n\nDear {Parent Name},\nYour child *{Student Name}* (Roll: {Roll No}) was marked *ABSENT* on {Date}.\n\nPlease ensure regular attendance.\n📞 Contact us for queries.\n\n– The Brighten Stars Academy"],
-    ['title'=>'Monthly Report',   'icon'=>'bi-file-earmark-bar-chart', 'color'=>'#10b981',
-     'body' => "*The Brighten Stars Academy*\n\n📈 *Monthly Report – {Month}*\n\nStudent: *{Student Name}*\nRoll No: {Roll No}\nCourse: {Course}\n\n📅 Attendance: {Present}/{Total} days ({Att%}%)\n📝 Tests Taken: {Tests}\n📊 Average Marks: {Average}%\n🎓 Grade: {Grade}\n\nTeacher Remarks: {Remarks}\n\n– The Brighten Stars Academy"],
-    ['title'=>'Holiday Notice',   'icon'=>'bi-calendar-event', 'color'=>'#f59e0b',
-     'body' => "*The Brighten Stars Academy*\n\n🎉 *Holiday Notice*\n\nDear Student/Parent,\n\nThe academy will remain *CLOSED* on {Date} due to {Reason}.\nClasses resume on {Resume Date}.\n\nThank you for your understanding!\n\n– The Brighten Stars Academy"],
-    ['title'=>'Fee Reminder',     'icon'=>'bi-credit-card',    'color'=>'#8b5cf6',
-     'body' => "*The Brighten Stars Academy*\n\n💳 *Fee Reminder*\n\nDear {Parent Name},\nThis is a reminder that the fee for *{Student Name}* (Roll: {Roll No}) for *{Month}* is due.\n\nAmount: PKR {Amount}\nDue Date: {Due Date}\n\nPlease clear dues at earliest.\n\nThank you!\n– The Brighten Stars Academy"],
-    ['title'=>'New Admission',    'icon'=>'bi-person-plus',    'color'=>'#06b6d4',
-     'body' => "*The Brighten Stars Academy*\n\n🎓 *Admission Confirmed!*\n\nDear {Parent Name},\n\nWe are pleased to confirm that *{Student Name}* has been successfully enrolled in:\n\n📚 Course: {Course}\n🕐 Timing: {Timing}\n🔢 Roll No: {Roll No}\n📅 Start Date: {Start Date}\n\nWelcome to the Brighten Stars family! ⭐\n\n– The Brighten Stars Academy"],
-    ['title'=>'Test Schedule',    'icon'=>'bi-pencil-square',  'color'=>'#f97316',
-     'body' => "*The Brighten Stars Academy*\n\n📝 *Upcoming Test*\n\nDear Student/Parent,\n\nA *{Test Type}* test is scheduled:\n\n📚 Subject: {Subject}\n📅 Date: {Date}\n🕐 Time: {Time}\n📋 Syllabus: {Syllabus}\n\nBest of luck! 🌟\n\n– The Brighten Stars Academy"],
-    ['title'=>'Announcement',     'icon'=>'bi-megaphone',      'color'=>'#ec4899',
-     'body' => "*The Brighten Stars Academy*\n\n📢 *Important Announcement*\n\n{Message}\n\nFor queries, please contact the academy.\n\nThank you!\n– The Brighten Stars Academy"],
+    ['title'=>'Test Result',    'icon'=>'bi-bar-chart',              'color'=>'#3b82f6',
+     'body' => "*The Brighten Stars Academy*\n\n*Test Result*\n\nDear {Parent Name},\nYour child {Student Name} (Roll: {Roll No}) has appeared in:\n\nTest: {Test Name}\nSubject: {Subject}\nMarks: {Obtained}/{Total}\nPercentage: {%}%\nGrade: {Grade}\n\nThank you.\n\nThe Brighten Stars Academy"],
+    ['title'=>'Absent Alert',   'icon'=>'bi-calendar-x',             'color'=>'#ef4444',
+     'body' => "*The Brighten Stars Academy*\n\n*Absence Notice*\n\nDear {Parent Name},\nYour child {Student Name} (Roll: {Roll No}) was marked Absent on {Date}.\n\nPlease ensure regular attendance.\nContact us for any queries.\n\nThe Brighten Stars Academy"],
+    ['title'=>'Monthly Report', 'icon'=>'bi-file-earmark-bar-chart', 'color'=>'#10b981',
+     'body' => "*The Brighten Stars Academy*\n\n*Monthly Report*\nMonth: {Month}\n\nStudent: {Student Name}\nRoll No: {Roll No}\nCourse: {Course}\n\nAttendance: {Present}/{Total} days ({Att%}%)\nTests Taken: {Tests}\nAverage Marks: {Average}%\nGrade: {Grade}\n\nTeacher Remarks: {Remarks}\n\nThe Brighten Stars Academy"],
+    ['title'=>'Holiday Notice', 'icon'=>'bi-calendar-event',         'color'=>'#f59e0b',
+     'body' => "*The Brighten Stars Academy*\n\n*Holiday Notice*\n\nDear Parent / Student,\n\nThe academy will remain closed on {Date} due to {Reason}.\nClasses will resume on {Resume Date}.\n\nThank you.\n\nThe Brighten Stars Academy"],
+    ['title'=>'Fee Reminder',   'icon'=>'bi-credit-card',            'color'=>'#8b5cf6',
+     'body' => "*The Brighten Stars Academy*\n\n*Fee Reminder*\n\nDear {Parent Name},\nThis is a reminder that the fee for {Student Name} (Roll: {Roll No}) for {Month} is due.\n\nAmount: PKR {Amount}\nDue Date: {Due Date}\n\nPlease clear dues at the earliest.\n\nThe Brighten Stars Academy"],
+    ['title'=>'New Admission',  'icon'=>'bi-person-plus',            'color'=>'#06b6d4',
+     'body' => "*The Brighten Stars Academy*\n\n*Admission Confirmed*\n\nDear {Parent Name},\n\nWe are pleased to confirm that {Student Name} has been enrolled in:\n\nCourse: {Course}\nTiming: {Timing}\nRoll No: {Roll No}\nStart Date: {Start Date}\n\nWelcome to The Brighten Stars Academy."],
+    ['title'=>'Test Schedule',  'icon'=>'bi-pencil-square',          'color'=>'#f97316',
+     'body' => "*The Brighten Stars Academy*\n\n*Upcoming Test*\n\nDear Parent / Student,\n\nTest Type: {Test Type}\nSubject: {Subject}\nDate: {Date}\nTime: {Time}\nSyllabus: {Syllabus}\n\nBest of luck.\n\nThe Brighten Stars Academy"],
+    ['title'=>'Announcement',   'icon'=>'bi-megaphone',              'color'=>'#ec4899',
+     'body' => "*The Brighten Stars Academy*\n\n*Announcement*\n\n{Message}\n\nFor queries, please contact the academy.\n\nThank you.\nThe Brighten Stars Academy"],
 ];
 
 // Load custom saved templates

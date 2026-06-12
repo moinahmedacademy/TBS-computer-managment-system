@@ -140,7 +140,7 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
 <div class="row g-3">
 
     <!-- ── LEFT: COMPOSE ──────────────────────────────────────────────── -->
-    <div class="col-12 col-lg-5">
+    <div class="col-12 col-lg-4">
         <div class="data-card" style="padding:1.5rem">
             <div style="font-weight:700;font-size:.95rem;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem">
                 <i class="bi bi-pencil-square" style="color:var(--accent)"></i> Compose Message
@@ -278,7 +278,9 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
         <!-- Sent Log -->
         <div class="data-card">
             <div class="data-card-header">
-                <div class="data-card-title">Sent Messages Log</div>
+                <div class="data-card-title">
+                    <i class="bi bi-whatsapp me-2" style="color:#25d366"></i>Sent Messages Log
+                </div>
                 <span style="font-size:.75rem;color:var(--text-muted)"><?= count($logs) ?> message(s)</span>
             </div>
 
@@ -294,9 +296,9 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                 </form>
             </div>
 
-            <div class="table-wrap">
-                <table class="table-academy" id="logTable">
-                    <thead>
+            <div class="table-wrap" style="overflow-x:auto;overflow-y:auto;max-height:520px">
+                <table class="table-academy" id="logTable" style="white-space:nowrap;min-width:820px">
+                    <thead style="position:sticky;top:0;z-index:2">
                         <tr>
                             <th style="width:36px">
                                 <input type="checkbox" id="selectAll" class="form-check-input" title="Select all" style="cursor:pointer">
@@ -355,8 +357,8 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                             <span class="badge-academy badge-info" style="font-size:.68rem"><?= ucfirst($log['message_type'] ?? 'custom') ?></span>
                         </td>
                         <!-- Message preview -->
-                        <td style="max-width:160px">
-                            <div style="font-size:.75rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px"
+                        <td style="max-width:200px;white-space:normal">
+                            <div style="font-size:.75rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:190px"
                                  title="<?= sanitize($log['message'] ?? '') ?>">
                                 <?= sanitize(substr($log['message'] ?? '', 0, 55)) ?><?= strlen($log['message'] ?? '') > 55 ? '…' : '' ?>
                             </div>

@@ -108,21 +108,21 @@ $students = db()->fetchAll(
 
 // Built-in templates
 $builtinTemplates = [
-    ['title'=>'Test Result',    'icon'=>'bi-bar-chart',              'color'=>'#3b82f6',
+    ['type'=>'result',        'title'=>'Test Result',    'icon'=>'bi-bar-chart',              'color'=>'#3b82f6',
      'body' => "*The Brighten Stars Academy*\n\n*Test Result*\n\nDear {Parent Name},\nYour child {Student Name} (Roll: {Roll No}) has appeared in:\n\nTest: {Test Name}\nSubject: {Subject}\nMarks: {Obtained}/{Total}\nPercentage: {%}%\nGrade: {Grade}\n\nThank you.\n\nThe Brighten Stars Academy"],
-    ['title'=>'Absent Alert',   'icon'=>'bi-calendar-x',             'color'=>'#ef4444',
+    ['type'=>'attendance',    'title'=>'Absent Alert',   'icon'=>'bi-calendar-x',             'color'=>'#ef4444',
      'body' => "*The Brighten Stars Academy*\n\n*Absence Notice*\n\nDear {Parent Name},\nYour child {Student Name} (Roll: {Roll No}) was marked Absent on {Date}.\n\nPlease ensure regular attendance.\nContact us for any queries.\n\nThe Brighten Stars Academy"],
-    ['title'=>'Monthly Report', 'icon'=>'bi-file-earmark-bar-chart', 'color'=>'#10b981',
+    ['type'=>'report',        'title'=>'Monthly Report', 'icon'=>'bi-file-earmark-bar-chart', 'color'=>'#10b981',
      'body' => "*The Brighten Stars Academy*\n\n*Monthly Report*\nMonth: {Month}\n\nStudent: {Student Name}\nRoll No: {Roll No}\nCourse: {Course}\n\nAttendance: {Present}/{Total} days ({Att%}%)\nTests Taken: {Tests}\nAverage Marks: {Average}%\nGrade: {Grade}\n\nTeacher Remarks: {Remarks}\n\nThe Brighten Stars Academy"],
-    ['title'=>'Holiday Notice', 'icon'=>'bi-calendar-event',         'color'=>'#f59e0b',
+    ['type'=>'holiday',       'title'=>'Holiday Notice', 'icon'=>'bi-calendar-event',         'color'=>'#f59e0b',
      'body' => "*The Brighten Stars Academy*\n\n*Holiday Notice*\n\nDear Parent / Student,\n\nThe academy will remain closed on {Date} due to {Reason}.\nClasses will resume on {Resume Date}.\n\nThank you.\n\nThe Brighten Stars Academy"],
-    ['title'=>'Fee Reminder',   'icon'=>'bi-credit-card',            'color'=>'#8b5cf6',
+    ['type'=>'fee',           'title'=>'Fee Reminder',   'icon'=>'bi-credit-card',            'color'=>'#8b5cf6',
      'body' => "*The Brighten Stars Academy*\n\n*Fee Reminder*\n\nDear {Parent Name},\nThis is a reminder that the fee for {Student Name} (Roll: {Roll No}) for {Month} is due.\n\nAmount: PKR {Amount}\nDue Date: {Due Date}\n\nPlease clear dues at the earliest.\n\nThe Brighten Stars Academy"],
-    ['title'=>'New Admission',  'icon'=>'bi-person-plus',            'color'=>'#06b6d4',
+    ['type'=>'admission',     'title'=>'New Admission',  'icon'=>'bi-person-plus',            'color'=>'#06b6d4',
      'body' => "*The Brighten Stars Academy*\n\n*Admission Confirmed*\n\nDear {Parent Name},\n\nWe are pleased to confirm that {Student Name} has been enrolled in:\n\nCourse: {Course}\nTiming: {Timing}\nRoll No: {Roll No}\nStart Date: {Start Date}\n\nWelcome to The Brighten Stars Academy."],
-    ['title'=>'Test Schedule',  'icon'=>'bi-pencil-square',          'color'=>'#f97316',
+    ['type'=>'test_schedule', 'title'=>'Test Schedule',  'icon'=>'bi-pencil-square',          'color'=>'#f97316',
      'body' => "*The Brighten Stars Academy*\n\n*Upcoming Test*\n\nDear Parent / Student,\n\nTest Type: {Test Type}\nSubject: {Subject}\nDate: {Date}\nTime: {Time}\nSyllabus: {Syllabus}\n\nBest of luck.\n\nThe Brighten Stars Academy"],
-    ['title'=>'Announcement',   'icon'=>'bi-megaphone',              'color'=>'#ec4899',
+    ['type'=>'announcement',  'title'=>'Announcement',   'icon'=>'bi-megaphone',              'color'=>'#ec4899',
      'body' => "*The Brighten Stars Academy*\n\n*Announcement*\n\n{Message}\n\nFor queries, please contact the academy.\n\nThank you.\nThe Brighten Stars Academy"],
 ];
 
@@ -214,9 +214,11 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                         <option value="result">Test Result</option>
                         <option value="attendance">Attendance Alert</option>
                         <option value="report">Monthly Report</option>
-                        <option value="announcement">Announcement</option>
+                        <option value="holiday">Holiday Notice</option>
                         <option value="fee">Fee Reminder</option>
                         <option value="admission">New Admission</option>
+                        <option value="test_schedule">Test Schedule</option>
+                        <option value="announcement">Announcement</option>
                     </select>
                 </div>
                 <div class="mb-3">
@@ -252,7 +254,9 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
             <div class="row g-2">
                 <?php foreach ($builtinTemplates as $tpl): ?>
                 <div class="col-6 col-md-4 col-xl-3">
-                    <div class="tpl-card use-tpl" data-body="<?= htmlspecialchars($tpl['body'], ENT_QUOTES) ?>"
+                    <div class="tpl-card use-tpl"
+                         data-body="<?= htmlspecialchars($tpl['body'], ENT_QUOTES) ?>"
+                         data-type="<?= $tpl['type'] ?>"
                          style="border-top:3px solid <?= $tpl['color'] ?>">
                         <i class="bi <?= $tpl['icon'] ?>" style="color:<?= $tpl['color'] ?>;font-size:1.1rem;margin-bottom:.3rem;display:block"></i>
                         <div style="font-size:.78rem;font-weight:600;line-height:1.3"><?= $tpl['title'] ?></div>
@@ -453,13 +457,15 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
 <script>
 // ── Templates ─────────────────────────────────────────────────────────────
 const builtinMap = {
-    result:       <?= json_encode($builtinTemplates[0]['body']) ?>,
-    attendance:   <?= json_encode($builtinTemplates[1]['body']) ?>,
-    report:       <?= json_encode($builtinTemplates[2]['body']) ?>,
-    announcement: <?= json_encode($builtinTemplates[7]['body']) ?>,
-    fee:          <?= json_encode($builtinTemplates[4]['body']) ?>,
-    admission:    <?= json_encode($builtinTemplates[5]['body']) ?>,
-    custom:       ''
+    result:        <?= json_encode($builtinTemplates[0]['body']) ?>,
+    attendance:    <?= json_encode($builtinTemplates[1]['body']) ?>,
+    report:        <?= json_encode($builtinTemplates[2]['body']) ?>,
+    holiday:       <?= json_encode($builtinTemplates[3]['body']) ?>,
+    fee:           <?= json_encode($builtinTemplates[4]['body']) ?>,
+    admission:     <?= json_encode($builtinTemplates[5]['body']) ?>,
+    test_schedule: <?= json_encode($builtinTemplates[6]['body']) ?>,
+    announcement:  <?= json_encode($builtinTemplates[7]['body']) ?>,
+    custom:        ''
 };
 
 function loadTemplate(type) {
@@ -603,9 +609,17 @@ function updateCount() {
 
 document.getElementById('waMessage').addEventListener('input', updateCount);
 
-// Template cards click handler
+// Template cards click handler — also syncs the Message Type dropdown
 document.querySelectorAll('.use-tpl').forEach(el => {
     el.addEventListener('click', function() {
+        const type = this.dataset.type || 'custom';
+        const sel  = document.getElementById('msgType');
+        // Set dropdown if this type exists as an option
+        if (sel.querySelector('option[value="' + type + '"]')) {
+            sel.value = type;
+        } else {
+            sel.value = 'custom';
+        }
         useTemplate(this.dataset.body);
     });
 });

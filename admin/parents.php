@@ -137,7 +137,8 @@ $students = db()->fetchAll("SELECT id,name,roll_number FROM students WHERE statu
                            style="background:rgba(139,92,246,.15);color:#8b5cf6;border:none;border-radius:7px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center">
                             <i class="bi bi-bar-chart"></i>
                         </a>
-                        <form method="POST" onsubmit="return confirmDelete(this,'Parent <?= sanitize($p[\'name\']) ?> will be deleted.')">
+                        <?php $delMsg = "Parent " . ($p['name'] ?? '') . " will be deleted."; ?>
+                        <form method="POST" onsubmit="return confirmDelete(this, <?= json_encode($delMsg) ?>)">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<?= $p['id'] ?>">
                             <?= csrfField() ?>

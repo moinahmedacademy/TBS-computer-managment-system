@@ -294,19 +294,18 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
             </div>
 
             <!-- Delete toolbar (hidden until a row is checked) -->
-            <form method="POST" id="deleteLogsForm"
-                  onsubmit="return confirmDelete(this,'Delete selected log entries? This cannot be undone.')">
+            <form method="POST" id="deleteLogsForm">
                 <input type="hidden" name="action" value="delete_logs">
                 <div id="deleteIdsContainer"></div>
-                <div id="logToolbar" style="display:none;padding:.6rem 1rem;background:rgba(239,68,68,.07);border-bottom:1px solid rgba(239,68,68,.2);align-items:center;gap:.75rem;flex-wrap:wrap">
-                    <i class="bi bi-check2-square" style="color:#ef4444"></i>
-                    <span id="selCount" style="font-size:.82rem;color:var(--text-muted);flex:1">0 selected</span>
-                    <button type="submit" class="btn-icon btn-icon-delete"
-                            style="width:auto;padding:.35rem .9rem;gap:.4rem;display:inline-flex;align-items:center;font-size:.82rem;font-weight:500">
-                        <i class="bi bi-trash"></i> Delete Selected
-                    </button>
-                </div>
             </form>
+            <div id="logToolbar" style="display:none;padding:.6rem 1rem;background:rgba(239,68,68,.07);border-bottom:1px solid rgba(239,68,68,.2);align-items:center;gap:.75rem;flex-wrap:wrap">
+                <i class="bi bi-check2-square" style="color:#ef4444"></i>
+                <span id="selCount" style="font-size:.82rem;color:var(--text-muted);flex:1">0 selected</span>
+                <button type="button" class="btn-icon btn-icon-delete" onclick="confirmDeleteLogs()"
+                        style="width:auto;padding:.35rem .9rem;gap:.4rem;display:inline-flex;align-items:center;font-size:.82rem;font-weight:500">
+                    <i class="bi bi-trash"></i> Delete Selected
+                </button>
+            </div>
 
             <div class="table-wrap" style="overflow-y:auto;max-height:480px">
                 <table class="table-academy" id="logTable" style="width:100%;white-space:nowrap">
@@ -640,28 +639,43 @@ document.addEventListener('click', e => {
     }
 });
 
+// ── Delete selected log entries ───────────────────────────────────────────
+function confirmDeleteLogs() {
+    const checked = document.querySelectorAll('.log-cb:checked');
+    if (!checked.length) return;
+    const count = checked.length;
+    tbsConfirm(
+        'Delete ' + count + ' selected log ' + (count === 1 ? 'entry' : 'entries') + '? This cannot be undone.',
+        function() {
+            // Populate hidden inputs then submit
+            const cont = document.getElementById('deleteIdsContainer');
+            cont.innerHTML = '';
+            checked.forEach(cb => {
+                const inp = document.createElement('input');
+                inp.type  = 'hidden';
+                inp.name  = 'log_ids[]';
+                inp.value = cb.value;
+                cont.appendChild(inp);
+            });
+            document.getElementById('deleteLogsForm').submit();
+        },
+        { type: 'danger', icon: 'bi-trash', yesLabel: 'Yes, Delete' }
+    );
+}
+
 // ── Log checkboxes ────────────────────────────────────────────────────────
 const selectAll = document.getElementById('selectAll');
 const toolbar   = document.getElementById('logToolbar');
 const selCount  = document.getElementById('selCount');
-const idsCont   = document.getElementById('deleteIdsContainer');
 
 function updateToolbar() {
     const checked = document.querySelectorAll('.log-cb:checked');
     if (checked.length > 0) {
         toolbar.style.display = 'flex';
         selCount.textContent  = checked.length + ' selected';
-        idsCont.innerHTML = '';
-        checked.forEach(cb => {
-            const inp = document.createElement('input');
-            inp.type  = 'hidden';
-            inp.name  = 'log_ids[]';
-            inp.value = cb.value;
-            idsCont.appendChild(inp);
-        });
     } else {
         toolbar.style.display = 'none';
-        selectAll.checked = false;
+        if (selectAll) selectAll.checked = false;
     }
 }
 

@@ -231,31 +231,6 @@ $announcements = db()->fetchAll(
                     </select>
                 </div>
                 <!-- Announcement picker (shown only when type = announcement) -->
-                <div id="annPickerWrap" style="display:none;margin-bottom:.85rem">
-                    <label class="form-label"><i class="bi bi-megaphone me-1" style="color:#ec4899"></i>Select Announcement</label>
-                    <div style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:10px">
-                        <?php if ($announcements): foreach ($announcements as $ann): ?>
-                        <div class="ann-pick-item"
-                             data-title="<?= htmlspecialchars($ann['title'], ENT_QUOTES) ?>"
-                             data-content="<?= htmlspecialchars($ann['content'] ?? '', ENT_QUOTES) ?>"
-                             style="padding:.6rem 1rem;cursor:pointer;border-bottom:1px solid var(--border);font-size:.82rem;transition:background .1s">
-                            <div style="font-weight:600;font-size:.83rem"><?= sanitize($ann['title']) ?></div>
-                            <div style="color:var(--text-muted);font-size:.72rem">
-                                <?= ucfirst($ann['type']) ?>
-                                <?php if (!empty($ann['priority']) && $ann['priority'] !== 'normal'): ?>
-                                · <span style="color:<?= $ann['priority']==='critical'?'#ef4444':($ann['priority']==='urgent'?'#f59e0b':'#3b82f6') ?>"><?= ucfirst($ann['priority']) ?></span>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                        <?php endforeach; else: ?>
-                        <div style="padding:1.2rem;text-align:center;color:var(--text-muted);font-size:.83rem">
-                            <i class="bi bi-megaphone" style="display:block;font-size:1.4rem;margin-bottom:.3rem"></i>
-                            No published announcements
-                        </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
                 <div class="mb-3">
                     <label class="form-label">Message</label>
                     <textarea id="waMessage" class="form-control" rows="8" placeholder="Type message or click a template…"></textarea>
@@ -588,9 +563,7 @@ const builtinMap = {
 };
 
 function loadTemplate(type) {
-    toggleAnnPicker(type);
-    // For 'announcement', let the user pick from the picker panel; don't auto-fill generic template
-    if (type !== 'announcement' && builtinMap[type]) useTemplate(builtinMap[type]);
+    if (builtinMap[type]) useTemplate(builtinMap[type]);
 }
 
 function useTemplate(text) {
@@ -821,29 +794,8 @@ document.querySelectorAll('.log-cb').forEach(cb => {
     });
 });
 
-// ── Announcement picker ───────────────────────────────────────────────────
-function toggleAnnPicker(type) {
-    const wrap = document.getElementById('annPickerWrap');
-    if (wrap) wrap.style.display = type === 'announcement' ? '' : 'none';
-}
-
 document.getElementById('msgType').addEventListener('change', function() {
     loadTemplate(this.value);
-});
-
-// Clicking an announcement item fills the textarea and sets type
-document.querySelectorAll('.ann-pick-item').forEach(el => {
-    el.addEventListener('click', function() {
-        const annMsg = "*The Brighten Stars Academy*\n\n*" + this.dataset.title + "*\n\n" + this.dataset.content + "\n\nThe Brighten Stars Academy";
-        document.getElementById('msgType').value = 'announcement';
-        toggleAnnPicker('announcement');
-        useTemplate(annMsg);
-    });
-});
-
-document.querySelectorAll('.ann-pick-item').forEach(el => {
-    el.addEventListener('mouseenter', function() { this.style.background = 'var(--surface2)'; });
-    el.addEventListener('mouseleave', function() { this.style.background = ''; });
 });
 </script>
 

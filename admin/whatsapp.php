@@ -132,7 +132,7 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
 
 // All announcements (not expired) — admin sees everything
 $announcements = db()->fetchAll(
-    "SELECT id, title, content, type, priority
+    "SELECT id, title, content, type, priority, target_audience, publish_at, expires_at
      FROM announcements
      WHERE expires_at IS NULL OR expires_at >= CURDATE()
      ORDER BY is_pinned DESC, created_at DESC
@@ -282,6 +282,10 @@ $announcements = db()->fetchAll(
                 </div>
                 <?php foreach ($announcements as $ann):
                     $annMsg = "*The Brighten Stars Academy*\n\n*" . $ann['title'] . "*\n\n" . ($ann['content'] ?? '') . "\n\nThe Brighten Stars Academy";
+                    $annPriority = $ann['priority'] ?? 'normal';
+                    $annPriorityColor = $annPriority === 'critical' ? '#ef4444' : ($annPriority === 'urgent' ? '#f59e0b' : ($annPriority === 'important' ? '#3b82f6' : null));
+                    $annTypeLabels = ['academic'=>'Academic','exam'=>'Exam','result'=>'Result','attendance'=>'Attendance','event'=>'Event','holiday'=>'Holiday','fee'=>'Fee','general'=>'General','test'=>'Test','course'=>'Course','notice'=>'Notice'];
+                    $annAudienceIcons = ['all'=>'bi-people','students'=>'bi-person','parents'=>'bi-person-heart'];
                 ?>
                 <div class="col-6 col-md-4 col-xl-3">
                     <div class="tpl-card use-tpl"
@@ -289,7 +293,32 @@ $announcements = db()->fetchAll(
                          data-type="announcement"
                          style="border-top:3px solid #ec4899">
                         <i class="bi bi-megaphone" style="color:#ec4899;font-size:1.1rem;margin-bottom:.3rem;display:block"></i>
-                        <div style="font-size:.78rem;font-weight:600;line-height:1.3;white-space:normal"><?= sanitize($ann['title']) ?></div>
+                        <div style="font-size:.78rem;font-weight:600;line-height:1.3;white-space:normal;margin-bottom:.35rem"><?= sanitize($ann['title']) ?></div>
+                        <div style="display:flex;flex-wrap:wrap;gap:.2rem .3rem;margin-top:.25rem">
+                            <?php if (!empty($annTypeLabels[$ann['type']])): ?>
+                            <span style="font-size:.62rem;background:rgba(236,72,153,.15);color:#ec4899;padding:.1rem .35rem;border-radius:4px">
+                                <?= $annTypeLabels[$ann['type']] ?>
+                            </span>
+                            <?php endif; ?>
+                            <?php if ($annPriorityColor): ?>
+                            <span style="font-size:.62rem;background:<?= $annPriorityColor ?>22;color:<?= $annPriorityColor ?>;padding:.1rem .35rem;border-radius:4px">
+                                <?= ucfirst($annPriority) ?>
+                            </span>
+                            <?php endif; ?>
+                            <?php if (!empty($ann['target_audience']) && $ann['target_audience'] !== 'all'): ?>
+                            <span style="font-size:.62rem;background:rgba(99,102,241,.15);color:#818cf8;padding:.1rem .35rem;border-radius:4px">
+                                <i class="bi <?= $annAudienceIcons[$ann['target_audience']] ?? 'bi-people' ?>"></i> <?= ucfirst($ann['target_audience']) ?>
+                            </span>
+                            <?php endif; ?>
+                        </div>
+                        <div style="margin-top:.3rem;font-size:.62rem;color:var(--text-muted);display:flex;flex-direction:column;gap:.1rem">
+                            <?php if (!empty($ann['publish_at'])): ?>
+                            <span><i class="bi bi-send me-1"></i><?= date('d M Y', strtotime($ann['publish_at'])) ?></span>
+                            <?php endif; ?>
+                            <?php if (!empty($ann['expires_at'])): ?>
+                            <span><i class="bi bi-clock me-1"></i>Exp: <?= date('d M Y', strtotime($ann['expires_at'])) ?></span>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
                 <?php endforeach; endif; ?>

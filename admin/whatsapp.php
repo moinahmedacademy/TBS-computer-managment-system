@@ -129,6 +129,16 @@ $builtinTemplates = [
 // Load custom saved templates
 $customRow = db()->fetchOne("SELECT setting_value as value FROM settings WHERE setting_key='wa_templates'");
 $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
+
+// Published announcements (not expired, published now or in past)
+$announcements = db()->fetchAll(
+    "SELECT id, title, content, type, priority
+     FROM announcements
+     WHERE (expires_at IS NULL OR expires_at >= CURDATE())
+       AND (publish_at IS NULL OR publish_at <= NOW())
+     ORDER BY is_pinned DESC, created_at DESC
+     LIMIT 50"
+);
 ?>
 
 <div class="section-header">
@@ -209,7 +219,7 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Message Type</label>
-                    <select id="msgType" class="form-select" onchange="loadTemplate(this.value)">
+                    <select id="msgType" class="form-select">
                         <option value="custom">Custom Message</option>
                         <option value="result">Test Result</option>
                         <option value="attendance">Attendance Alert</option>
@@ -221,6 +231,32 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                         <option value="announcement">Announcement</option>
                     </select>
                 </div>
+                <!-- Announcement picker (shown only when type = announcement) -->
+                <div id="annPickerWrap" style="display:none;margin-bottom:.85rem">
+                    <label class="form-label"><i class="bi bi-megaphone me-1" style="color:#ec4899"></i>Select Announcement</label>
+                    <div style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:10px">
+                        <?php if ($announcements): foreach ($announcements as $ann): ?>
+                        <div class="ann-pick-item"
+                             data-title="<?= htmlspecialchars($ann['title'], ENT_QUOTES) ?>"
+                             data-content="<?= htmlspecialchars($ann['content'] ?? '', ENT_QUOTES) ?>"
+                             style="padding:.6rem 1rem;cursor:pointer;border-bottom:1px solid var(--border);font-size:.82rem;transition:background .1s">
+                            <div style="font-weight:600;font-size:.83rem"><?= sanitize($ann['title']) ?></div>
+                            <div style="color:var(--text-muted);font-size:.72rem">
+                                <?= ucfirst($ann['type']) ?>
+                                <?php if (!empty($ann['priority']) && $ann['priority'] !== 'normal'): ?>
+                                · <span style="color:<?= $ann['priority']==='critical'?'#ef4444':($ann['priority']==='urgent'?'#f59e0b':'#3b82f6') ?>"><?= ucfirst($ann['priority']) ?></span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <?php endforeach; else: ?>
+                        <div style="padding:1.2rem;text-align:center;color:var(--text-muted);font-size:.83rem">
+                            <i class="bi bi-megaphone" style="display:block;font-size:1.4rem;margin-bottom:.3rem"></i>
+                            No published announcements
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
                 <div class="mb-3">
                     <label class="form-label">Message</label>
                     <textarea id="waMessage" class="form-control" rows="8" placeholder="Type message or click a template…"></textarea>
@@ -263,6 +299,26 @@ $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
                     </div>
                 </div>
                 <?php endforeach; ?>
+
+                <?php if ($announcements): ?>
+                <div class="col-12" style="margin-top:.25rem">
+                    <div style="font-size:.72rem;font-weight:600;color:#ec4899;text-transform:uppercase;letter-spacing:.05em;padding:.3rem 0 .15rem">
+                        <i class="bi bi-megaphone me-1"></i> Announcements
+                    </div>
+                </div>
+                <?php foreach ($announcements as $ann):
+                    $annMsg = "*The Brighten Stars Academy*\n\n*" . $ann['title'] . "*\n\n" . ($ann['content'] ?? '') . "\n\nThe Brighten Stars Academy";
+                ?>
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="tpl-card use-tpl"
+                         data-body="<?= htmlspecialchars($annMsg, ENT_QUOTES) ?>"
+                         data-type="announcement"
+                         style="border-top:3px solid #ec4899">
+                        <i class="bi bi-megaphone" style="color:#ec4899;font-size:1.1rem;margin-bottom:.3rem;display:block"></i>
+                        <div style="font-size:.78rem;font-weight:600;line-height:1.3;white-space:normal"><?= sanitize($ann['title']) ?></div>
+                    </div>
+                </div>
+                <?php endforeach; endif; ?>
 
                 <?php foreach ($customTemplates as $idx => $tpl): ?>
                 <div class="col-6 col-md-4 col-xl-3" id="ctpl-<?= $idx ?>">
@@ -533,7 +589,9 @@ const builtinMap = {
 };
 
 function loadTemplate(type) {
-    if (builtinMap[type]) useTemplate(builtinMap[type]);
+    toggleAnnPicker(type);
+    // For 'announcement', let the user pick from the picker panel; don't auto-fill generic template
+    if (type !== 'announcement' && builtinMap[type]) useTemplate(builtinMap[type]);
 }
 
 function useTemplate(text) {
@@ -762,6 +820,31 @@ document.querySelectorAll('.log-cb').forEach(cb => {
         selectAll.indeterminate  = chkd.length > 0 && chkd.length < all.length;
         updateToolbar();
     });
+});
+
+// ── Announcement picker ───────────────────────────────────────────────────
+function toggleAnnPicker(type) {
+    const wrap = document.getElementById('annPickerWrap');
+    if (wrap) wrap.style.display = type === 'announcement' ? '' : 'none';
+}
+
+document.getElementById('msgType').addEventListener('change', function() {
+    loadTemplate(this.value);
+});
+
+// Clicking an announcement item fills the textarea and sets type
+document.querySelectorAll('.ann-pick-item').forEach(el => {
+    el.addEventListener('click', function() {
+        const annMsg = "*The Brighten Stars Academy*\n\n*" + this.dataset.title + "*\n\n" + this.dataset.content + "\n\nThe Brighten Stars Academy";
+        document.getElementById('msgType').value = 'announcement';
+        toggleAnnPicker('announcement');
+        useTemplate(annMsg);
+    });
+});
+
+document.querySelectorAll('.ann-pick-item').forEach(el => {
+    el.addEventListener('mouseenter', function() { this.style.background = 'var(--surface2)'; });
+    el.addEventListener('mouseleave', function() { this.style.background = ''; });
 });
 </script>
 

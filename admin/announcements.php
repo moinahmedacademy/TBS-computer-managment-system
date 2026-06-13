@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $priority   = $_POST['priority']                 ?? 'normal';
         $expires    = $_POST['expires_at']               ?: null;
         $publishAt  = $_POST['publish_at']               ?: null;
-        $sendWa     = isset($_POST['send_whatsapp'])      ? 1 : 0;
+        $sendWa     = 0; // WA sending handled from WhatsApp page
 
         if (!$title || !$content) {
             flashMessage('danger', 'Title and content are required.');
@@ -61,15 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 [$title,$content,$type,$audience,$courseId,$pinned,$priority,$expires,$publishAt,$targetRef,$sendWa,$attachPath,$attachName,$_SESSION['user_id']]
             );
-            $newId = db()->fetchOne("SELECT LAST_INSERT_ID() as id")['id'];
             flashMessage('success', 'Announcement published.');
-
-            // If WhatsApp send requested, redirect to WA page with pre-filled message
-            if ($sendWa) {
-                $waMsg = "*The Brighten Stars Academy*\n\n*" . $title . "*\n\n" . $content . "\n\nPlease login to the portal to view details.\n\nThank You.\nThe Brighten Stars Academy";
-                $_SESSION['wa_prefill'] = $waMsg;
-                header('Location: announcements.php?wa=1'); exit;
-            }
         } else {
             $id = (int)$_POST['id'];
             if ($attachPath) {
@@ -134,12 +126,6 @@ $typeIcons      = ['academic'=>'bi-mortarboard','exam'=>'bi-pencil-square','resu
                    'attendance'=>'bi-calendar-check','event'=>'bi-calendar-event','holiday'=>'bi-umbrella',
                    'fee'=>'bi-credit-card','general'=>'bi-megaphone'];
 
-// WA prefill message if redirected from send
-$waPrefill = '';
-if (isset($_GET['wa']) && !empty($_SESSION['wa_prefill'])) {
-    $waPrefill = $_SESSION['wa_prefill'];
-    unset($_SESSION['wa_prefill']);
-}
 ?>
 
 <div class="section-header">
@@ -174,16 +160,6 @@ if (isset($_GET['wa']) && !empty($_SESSION['wa_prefill'])) {
     <?php endforeach; ?>
 </div>
 
-<?php if ($waPrefill): ?>
-<div class="alert" style="background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.3);border-radius:10px;padding:.9rem 1.2rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem">
-    <i class="bi bi-whatsapp" style="color:#25d366;font-size:1.3rem"></i>
-    <div style="flex:1;font-size:.88rem">Announcement published. <strong>Send WhatsApp notification?</strong></div>
-    <a href="whatsapp.php" class="btn-whatsapp" style="padding:.35rem .85rem;font-size:.82rem"
-       onclick="sessionStorage.setItem('waPrefill', <?= json_encode($waPrefill) ?>)">
-        <i class="bi bi-whatsapp"></i> Go to WhatsApp
-    </a>
-</div>
-<?php endif; ?>
 
 <!-- Announcements Grid -->
 <div class="row g-3">
@@ -202,12 +178,8 @@ if (isset($_GET['wa']) && !empty($_SESSION['wa_prefill'])) {
     $pColor      = $priorityColors[$ann['priority'] ?? 'normal'] ?? 'secondary';
     $tColor      = $typeColors[$ann['type'] ?? 'general'] ?? 'secondary';
     $tIcon       = $typeIcons[$ann['type']  ?? 'general'] ?? 'bi-megaphone';
-    $borderColor = match($ann['priority'] ?? 'normal') {
-        'critical'  => '#ef4444',
-        'urgent'    => '#f59e0b',
-        'important' => '#3b82f6',
-        default     => 'var(--border)'
-    };
+    $p = $ann['priority'] ?? 'normal';
+    $borderColor = $p === 'critical' ? '#ef4444' : ($p === 'urgent' ? '#f59e0b' : ($p === 'important' ? '#3b82f6' : 'var(--border)'));
 ?>
 <div class="col-12 col-lg-6">
     <div class="data-card" style="padding:1.25rem;border-left:3px solid <?= $borderColor ?>;<?= $isExpired ? 'opacity:.55' : '' ?>">
@@ -269,17 +241,9 @@ if (isset($_GET['wa']) && !empty($_SESSION['wa_prefill'])) {
                         <i class="bi bi-pin<?= $ann['is_pinned'] ? '-fill' : '' ?>"></i>
                     </button>
                 </form>
-                <!-- WA send -->
-                <?php
-                $waText = "*The Brighten Stars Academy*\n\n*".$ann['title']."*\n\n".$ann['content']."\n\nThe Brighten Stars Academy";
-                ?>
-                <button class="btn-icon btn-icon-wa" title="Send via WhatsApp"
-                        onclick="openWhatsApp('', <?= json_encode($waText) ?>)">
-                    <i class="bi bi-whatsapp"></i>
-                </button>
                 <!-- Edit -->
-                <button class="btn-icon btn-icon-edit" title="Edit"
-                        onclick="editAnn(<?= htmlspecialchars(json_encode($ann)) ?>)">
+                <button class="btn-icon btn-icon-edit ann-edit-btn" title="Edit"
+                        data-ann="<?= htmlspecialchars(json_encode($ann), ENT_QUOTES) ?>">
                     <i class="bi bi-pencil"></i>
                 </button>
                 <!-- Delete -->
@@ -288,8 +252,9 @@ if (isset($_GET['wa']) && !empty($_SESSION['wa_prefill'])) {
                     <input type="hidden" name="id"     value="<?= $ann['id'] ?>">
                     <?= csrfField() ?>
                 </form>
-                <button type="button" class="btn-icon btn-icon-delete" title="Delete"
-                        onclick="askDelete(<?= $ann['id'] ?>, <?= json_encode(sanitize($ann['title'])) ?>)">
+                <button type="button" class="btn-icon btn-icon-delete ann-del-btn" title="Delete"
+                        data-id="<?= $ann['id'] ?>"
+                        data-title="<?= htmlspecialchars(sanitize($ann['title']), ENT_QUOTES) ?>">
                     <i class="bi bi-trash"></i>
                 </button>
             </div>
@@ -400,14 +365,6 @@ if (isset($_GET['wa']) && !empty($_SESSION['wa_prefill'])) {
                             <input type="checkbox" name="is_pinned" id="pin_add" class="form-check-input">
                             <label for="pin_add" class="form-check-label form-label">
                                 <i class="bi bi-pin me-1" style="color:var(--accent)"></i> Pin to top
-                            </label>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-check mt-2">
-                            <input type="checkbox" name="send_whatsapp" id="wa_add" class="form-check-input">
-                            <label for="wa_add" class="form-check-label form-label">
-                                <i class="bi bi-whatsapp me-1" style="color:#25d366"></i> Send WhatsApp Notification
                             </label>
                         </div>
                     </div>
@@ -528,14 +485,6 @@ if (isset($_GET['wa']) && !empty($_SESSION['wa_prefill'])) {
                             </label>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-check mt-2">
-                            <input type="checkbox" name="send_whatsapp" id="ea_wa" class="form-check-input">
-                            <label for="ea_wa" class="form-check-label form-label">
-                                <i class="bi bi-whatsapp me-1" style="color:#25d366"></i> Send WhatsApp Notification
-                            </label>
-                        </div>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
@@ -598,7 +547,7 @@ function editAnn(a) {
     document.getElementById('ea_publish').value  = a.publish_at ? a.publish_at.substring(0,16) : '';
     document.getElementById('ea_content').value  = a.content;
     document.getElementById('ea_pin').checked    = a.is_pinned == 1;
-    document.getElementById('ea_wa').checked     = a.send_whatsapp == 1;
+
 
     // Show attachment info if exists
     const attDiv = document.getElementById('ea_current_attach');
@@ -614,15 +563,24 @@ function editAnn(a) {
     new bootstrap.Modal(document.getElementById('editModal')).show();
 }
 
+// ── Edit buttons ───────────────────────────────────────────────────────────
+document.querySelectorAll('.ann-edit-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        editAnn(JSON.parse(this.dataset.ann));
+    });
+});
+
 // ── Delete confirmation ────────────────────────────────────────────────────
 let _delFormId = null;
 
-function askDelete(id, title) {
-    _delFormId = 'delForm-' + id;
-    document.getElementById('annDeleteMsg').textContent =
-        '"' + title + '" will be permanently deleted. This cannot be undone.';
-    new bootstrap.Modal(document.getElementById('annDeleteModal')).show();
-}
+document.querySelectorAll('.ann-del-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        _delFormId = 'delForm-' + this.dataset.id;
+        document.getElementById('annDeleteMsg').textContent =
+            '"' + this.dataset.title + '" will be permanently deleted. This cannot be undone.';
+        new bootstrap.Modal(document.getElementById('annDeleteModal')).show();
+    });
+});
 
 document.getElementById('annDeleteYes').addEventListener('click', function() {
     bootstrap.Modal.getInstance(document.getElementById('annDeleteModal')).hide();

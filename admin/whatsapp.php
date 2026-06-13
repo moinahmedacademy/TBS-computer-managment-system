@@ -112,7 +112,7 @@ $builtinTemplates = [
      'body' => "*The Brighten Stars Academy*\n\n*Test Result*\n\nDear {Parent Name},\nYour child {Student Name} (Roll: {Roll No}) has appeared in:\n\nTest: {Test Name}\nSubject: {Subject}\nMarks: {Obtained}/{Total}\nPercentage: {%}%\nGrade: {Grade}\n\nThank you.\n\nThe Brighten Stars Academy"],
     ['type'=>'attendance',    'title'=>'Absent Alert',   'icon'=>'bi-calendar-x',             'color'=>'#ef4444',
      'body' => "*The Brighten Stars Academy*\n\n*Absence Notice*\n\nDear {Parent Name},\nYour child {Student Name} (Roll: {Roll No}) was marked Absent on {Date}.\n\nPlease ensure regular attendance.\nContact us for any queries.\n\nThe Brighten Stars Academy"],
-    ['type'=>'report',        'title'=>'Monthly Report', 'icon'=>'bi-file-earmark-bar-chart', 'color'=>'#10b981',
+    ['type'=>'report',        'title'=>'Monthly Report', 'icon'=>'bi-bar-chart-line', 'color'=>'#10b981',
      'body' => "*The Brighten Stars Academy*\n\n*Monthly Report*\nMonth: {Month}\n\nStudent: {Student Name}\nRoll No: {Roll No}\nCourse: {Course}\n\nAttendance: {Present}/{Total} days ({Att%}%)\nTests Taken: {Tests}\nAverage Marks: {Average}%\nGrade: {Grade}\n\nTeacher Remarks: {Remarks}\n\nThe Brighten Stars Academy"],
     ['type'=>'holiday',       'title'=>'Holiday Notice', 'icon'=>'bi-calendar-event',         'color'=>'#f59e0b',
      'body' => "*The Brighten Stars Academy*\n\n*Holiday Notice*\n\nDear Parent / Student,\n\nThe academy will remain closed on {Date} due to {Reason}.\nClasses will resume on {Resume Date}.\n\nThank you.\n\nThe Brighten Stars Academy"],

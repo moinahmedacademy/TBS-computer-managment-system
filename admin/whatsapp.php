@@ -122,20 +122,17 @@ $builtinTemplates = [
      'body' => "*The Brighten Stars Academy*\n\n*Admission Confirmed*\n\nDear {Parent Name},\n\nWe are pleased to confirm that {Student Name} has been enrolled in:\n\nCourse: {Course}\nTiming: {Timing}\nRoll No: {Roll No}\nStart Date: {Start Date}\n\nWelcome to The Brighten Stars Academy."],
     ['type'=>'test_schedule', 'title'=>'Test Schedule',  'icon'=>'bi-pencil-square',          'color'=>'#f97316',
      'body' => "*The Brighten Stars Academy*\n\n*Upcoming Test*\n\nDear Parent / Student,\n\nTest Type: {Test Type}\nSubject: {Subject}\nDate: {Date}\nTime: {Time}\nSyllabus: {Syllabus}\n\nBest of luck.\n\nThe Brighten Stars Academy"],
-    ['type'=>'announcement',  'title'=>'Announcement',   'icon'=>'bi-megaphone',              'color'=>'#ec4899',
-     'body' => "*The Brighten Stars Academy*\n\n*Announcement*\n\n{Message}\n\nFor queries, please contact the academy.\n\nThank you.\nThe Brighten Stars Academy"],
 ];
 
 // Load custom saved templates
 $customRow = db()->fetchOne("SELECT setting_value as value FROM settings WHERE setting_key='wa_templates'");
 $customTemplates = $customRow ? json_decode($customRow['value'], true) : [];
 
-// Published announcements (not expired, published now or in past)
+// All announcements (not expired) — admin sees everything
 $announcements = db()->fetchAll(
     "SELECT id, title, content, type, priority
      FROM announcements
-     WHERE (expires_at IS NULL OR expires_at >= CURDATE())
-       AND (publish_at IS NULL OR publish_at <= NOW())
+     WHERE expires_at IS NULL OR expires_at >= CURDATE()
      ORDER BY is_pinned DESC, created_at DESC
      LIMIT 50"
 );
@@ -584,7 +581,7 @@ const builtinMap = {
     fee:           <?= json_encode($builtinTemplates[4]['body']) ?>,
     admission:     <?= json_encode($builtinTemplates[5]['body']) ?>,
     test_schedule: <?= json_encode($builtinTemplates[6]['body']) ?>,
-    announcement:  <?= json_encode($builtinTemplates[7]['body']) ?>,
+    announcement:  '',
     custom:        ''
 };
 

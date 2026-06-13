@@ -348,6 +348,16 @@ $announcements = db()->fetchAll(
                 <span style="font-size:.75rem;color:var(--text-muted)"><?= count($logs) ?> message(s)</span>
             </div>
 
+            <!-- Log search filter -->
+            <div style="padding:.6rem 1rem;border-bottom:1px solid var(--border)">
+                <div class="search-wrap" style="width:100%">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="logSearch" class="search-input" style="width:100%"
+                           placeholder="Filter by name, roll no, course, batch, timing, phone…"
+                           oninput="filterLogs(this.value)">
+                </div>
+            </div>
+
             <!-- Delete toolbar (hidden until a row is checked) -->
             <form method="POST" id="deleteLogsForm">
                 <input type="hidden" name="action" value="delete_logs">
@@ -362,7 +372,7 @@ $announcements = db()->fetchAll(
                 </button>
             </div>
 
-            <div class="table-wrap" <?= count($logs) > 2 ? 'style="overflow-y:auto;max-height:480px"' : '' ?>>
+            <div class="table-wrap" <?= count($logs) > 2 ? 'style="overflow-y:auto;max-height:200px"' : '' ?>>
                 <table class="table-academy" id="logTable" style="width:100%;white-space:nowrap">
                     <thead style="position:sticky;top:0;z-index:2">
                         <tr>
@@ -379,8 +389,20 @@ $announcements = db()->fetchAll(
                         </tr>
                     </thead>
                     <tbody>
-                    <?php if ($logs): foreach ($logs as $log): ?>
-                    <tr>
+                    <?php if ($logs): foreach ($logs as $log):
+                        $logSearch = strtolower(implode(' ', array_filter([
+                            $log['recipient_name'] ?? '',
+                            $log['student_roll']   ?? '',
+                            $log['parent_name']    ?? '',
+                            $log['father_name']    ?? '',
+                            $log['course_name']    ?? '',
+                            $log['batch_code']     ?? '',
+                            $log['class_timing']   ?? '',
+                            $log['phone']          ?? '',
+                            $log['message_type']   ?? '',
+                        ])));
+                    ?>
+                    <tr class="log-row" data-search="<?= htmlspecialchars($logSearch, ENT_QUOTES) ?>">
                         <td style="text-align:center">
                             <input type="checkbox" class="form-check-input log-cb" value="<?= $log['id'] ?>" style="cursor:pointer">
                         </td>
@@ -822,6 +844,14 @@ document.querySelectorAll('.log-cb').forEach(cb => {
 document.getElementById('msgType').addEventListener('change', function() {
     loadTemplate(this.value);
 });
+
+// ── Sent log filter ───────────────────────────────────────────────────────
+function filterLogs(q) {
+    const lower = q.trim().toLowerCase();
+    document.querySelectorAll('.log-row').forEach(function(row) {
+        row.style.display = (!lower || row.dataset.search.includes(lower)) ? '' : 'none';
+    });
+}
 </script>
 
 <?php require_once __DIR__ . '/footer.php'; ?>

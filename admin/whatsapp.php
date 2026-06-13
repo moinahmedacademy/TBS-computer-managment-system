@@ -362,7 +362,7 @@ $announcements = db()->fetchAll(
                 </button>
             </div>
 
-            <div class="table-wrap" style="overflow-y:auto;max-height:480px">
+            <div class="table-wrap" <?= count($logs) > 2 ? 'style="overflow-y:auto;max-height:480px"' : '' ?>>
                 <table class="table-academy" id="logTable" style="width:100%;white-space:nowrap">
                     <thead style="position:sticky;top:0;z-index:2">
                         <tr>

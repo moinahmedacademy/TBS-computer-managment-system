@@ -292,31 +292,27 @@ $announcements = db()->fetchAll(
                          data-body="<?= htmlspecialchars($annMsg, ENT_QUOTES) ?>"
                          data-type="announcement"
                          style="border-top:3px solid #ec4899">
-                        <i class="bi bi-megaphone" style="color:#ec4899;font-size:1.1rem;margin-bottom:.3rem;display:block"></i>
-                        <div style="font-size:.78rem;font-weight:600;line-height:1.3;white-space:normal;margin-bottom:.35rem"><?= sanitize($ann['title']) ?></div>
-                        <div style="display:flex;flex-wrap:wrap;gap:.2rem .3rem;margin-top:.25rem">
-                            <?php if (!empty($annTypeLabels[$ann['type']])): ?>
-                            <span style="font-size:.62rem;background:rgba(236,72,153,.15);color:#ec4899;padding:.1rem .35rem;border-radius:4px">
-                                <?= $annTypeLabels[$ann['type']] ?>
-                            </span>
-                            <?php endif; ?>
+                        <!-- Header: icon + priority -->
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem">
+                            <i class="bi bi-megaphone" style="color:#ec4899;font-size:1rem"></i>
                             <?php if ($annPriorityColor): ?>
-                            <span style="font-size:.62rem;background:<?= $annPriorityColor ?>22;color:<?= $annPriorityColor ?>;padding:.1rem .35rem;border-radius:4px">
-                                <?= ucfirst($annPriority) ?>
-                            </span>
-                            <?php endif; ?>
-                            <?php if (!empty($ann['target_audience']) && $ann['target_audience'] !== 'all'): ?>
-                            <span style="font-size:.62rem;background:rgba(99,102,241,.15);color:#818cf8;padding:.1rem .35rem;border-radius:4px">
-                                <i class="bi <?= $annAudienceIcons[$ann['target_audience']] ?? 'bi-people' ?>"></i> <?= ucfirst($ann['target_audience']) ?>
-                            </span>
+                            <span style="font-size:.6rem;background:<?= $annPriorityColor ?>22;color:<?= $annPriorityColor ?>;padding:.1rem .3rem;border-radius:4px;font-weight:600"><?= ucfirst($annPriority) ?></span>
                             <?php endif; ?>
                         </div>
-                        <div style="margin-top:.3rem;font-size:.62rem;color:var(--text-muted);display:flex;flex-direction:column;gap:.1rem">
+                        <!-- Title -->
+                        <div style="font-size:.78rem;font-weight:600;line-height:1.3;white-space:normal;margin-bottom:.3rem"><?= sanitize($ann['title']) ?></div>
+                        <!-- Meta: category · audience · dates -->
+                        <div style="font-size:.63rem;color:var(--text-muted);display:flex;flex-wrap:wrap;gap:.15rem .4rem">
+                            <?php if (!empty($annTypeLabels[$ann['type']])): ?>
+                            <span style="color:#ec4899"><?= $annTypeLabels[$ann['type']] ?></span>
+                            <?php endif; ?>
+                            <?php $aud = $ann['target_audience'] ?? 'all'; ?>
+                            <span><i class="bi <?= $annAudienceIcons[$aud] ?? 'bi-people' ?> me-1"></i><?= ucfirst($aud) ?></span>
                             <?php if (!empty($ann['publish_at'])): ?>
-                            <span><i class="bi bi-send me-1"></i><?= date('d M Y', strtotime($ann['publish_at'])) ?></span>
+                            <span><i class="bi bi-send me-1"></i><?= date('d M', strtotime($ann['publish_at'])) ?></span>
                             <?php endif; ?>
                             <?php if (!empty($ann['expires_at'])): ?>
-                            <span><i class="bi bi-clock me-1"></i>Exp: <?= date('d M Y', strtotime($ann['expires_at'])) ?></span>
+                            <span><i class="bi bi-clock me-1"></i><?= date('d M', strtotime($ann['expires_at'])) ?></span>
                             <?php endif; ?>
                         </div>
                     </div>

@@ -348,14 +348,40 @@ $announcements = db()->fetchAll(
                 <span style="font-size:.75rem;color:var(--text-muted)"><?= count($logs) ?> message(s)</span>
             </div>
 
-            <!-- Log search filter -->
-            <div style="padding:.6rem 1rem;border-bottom:1px solid var(--border)">
-                <div class="search-wrap" style="width:100%">
-                    <i class="bi bi-search"></i>
-                    <input type="text" id="logSearch" class="search-input" style="width:100%"
-                           placeholder="Filter by name, roll no, course, batch, timing, phone…"
-                           oninput="filterLogs(this.value)">
-                </div>
+            <!-- Log individual filters -->
+            <?php
+            $logCourses = array_unique(array_filter(array_column($logs, 'course_name')));
+            $logBatches = array_unique(array_filter(array_column($logs, 'batch_code')));
+            $logTimings = array_unique(array_filter(array_column($logs, 'class_timing')));
+            sort($logCourses); sort($logBatches); sort($logTimings);
+            ?>
+            <div style="padding:.55rem .85rem;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:.4rem;align-items:center">
+                <input type="text" id="lf_name" class="log-filter" placeholder="Name"
+                       style="width:110px" data-col="name" oninput="filterLogRows()">
+                <input type="text" id="lf_roll" class="log-filter" placeholder="Roll No"
+                       style="width:85px" data-col="roll" oninput="filterLogRows()">
+                <select id="lf_course" class="log-filter" data-col="course" onchange="filterLogRows()" style="width:120px">
+                    <option value="">All Courses</option>
+                    <?php foreach ($logCourses as $c): ?>
+                    <option><?= sanitize($c) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <select id="lf_batch" class="log-filter" data-col="batch" onchange="filterLogRows()" style="width:100px">
+                    <option value="">All Batches</option>
+                    <?php foreach ($logBatches as $b): ?>
+                    <option><?= sanitize($b) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <select id="lf_timing" class="log-filter" data-col="timing" onchange="filterLogRows()" style="width:100px">
+                    <option value="">All Timings</option>
+                    <?php foreach ($logTimings as $t): ?>
+                    <option><?= sanitize($t) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <button type="button" onclick="clearLogFilters()"
+                        style="background:none;border:1px solid var(--border);border-radius:7px;color:var(--text-muted);font-size:.75rem;padding:.25rem .6rem;cursor:pointer;white-space:nowrap">
+                    <i class="bi bi-x-lg me-1"></i>Clear
+                </button>
             </div>
 
             <!-- Delete toolbar (hidden until a row is checked) -->
@@ -372,7 +398,7 @@ $announcements = db()->fetchAll(
                 </button>
             </div>
 
-            <div class="table-wrap" <?= count($logs) > 2 ? 'style="overflow-y:auto;max-height:200px"' : '' ?>>
+            <div class="table-wrap" <?= count($logs) > 2 ? 'style="overflow-y:auto;max-height:140px"' : '' ?>>
                 <table class="table-academy" id="logTable" style="width:100%;white-space:nowrap">
                     <thead style="position:sticky;top:0;z-index:2">
                         <tr>
@@ -389,20 +415,13 @@ $announcements = db()->fetchAll(
                         </tr>
                     </thead>
                     <tbody>
-                    <?php if ($logs): foreach ($logs as $log):
-                        $logSearch = strtolower(implode(' ', array_filter([
-                            $log['recipient_name'] ?? '',
-                            $log['student_roll']   ?? '',
-                            $log['parent_name']    ?? '',
-                            $log['father_name']    ?? '',
-                            $log['course_name']    ?? '',
-                            $log['batch_code']     ?? '',
-                            $log['class_timing']   ?? '',
-                            $log['phone']          ?? '',
-                            $log['message_type']   ?? '',
-                        ])));
-                    ?>
-                    <tr class="log-row" data-search="<?= htmlspecialchars($logSearch, ENT_QUOTES) ?>">
+                    <?php if ($logs): foreach ($logs as $log): ?>
+                    <tr class="log-row"
+                        data-name="<?= strtolower(htmlspecialchars($log['recipient_name'] ?? '', ENT_QUOTES)) ?>"
+                        data-roll="<?= strtolower(htmlspecialchars($log['student_roll']   ?? '', ENT_QUOTES)) ?>"
+                        data-course="<?= strtolower(htmlspecialchars($log['course_name']  ?? '', ENT_QUOTES)) ?>"
+                        data-batch="<?= strtolower(htmlspecialchars($log['batch_code']    ?? '', ENT_QUOTES)) ?>"
+                        data-timing="<?= strtolower(htmlspecialchars($log['class_timing'] ?? '', ENT_QUOTES)) ?>">
                         <td style="text-align:center">
                             <input type="checkbox" class="form-check-input log-cb" value="<?= $log['id'] ?>" style="cursor:pointer">
                         </td>
@@ -593,6 +612,8 @@ $announcements = db()->fetchAll(
 }
 .tpl-card:hover { background: var(--surface3); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.3); }
 .student-opt:hover { background: var(--surface2); }
+.log-filter { background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:.75rem;padding:.28rem .55rem;outline:none; }
+.log-filter:focus { border-color:var(--accent); }
 </style>
 
 <script>
@@ -845,12 +866,32 @@ document.getElementById('msgType').addEventListener('change', function() {
     loadTemplate(this.value);
 });
 
-// ── Sent log filter ───────────────────────────────────────────────────────
-function filterLogs(q) {
-    const lower = q.trim().toLowerCase();
+// ── Sent log filters ──────────────────────────────────────────────────────
+function filterLogRows() {
+    const name   = document.getElementById('lf_name').value.trim().toLowerCase();
+    const roll   = document.getElementById('lf_roll').value.trim().toLowerCase();
+    const course = document.getElementById('lf_course').value.trim().toLowerCase();
+    const batch  = document.getElementById('lf_batch').value.trim().toLowerCase();
+    const timing = document.getElementById('lf_timing').value.trim().toLowerCase();
+
     document.querySelectorAll('.log-row').forEach(function(row) {
-        row.style.display = (!lower || row.dataset.search.includes(lower)) ? '' : 'none';
+        const s = row.dataset;
+        const show =
+            (!name   || s.name.includes(name))     &&
+            (!roll   || s.roll.includes(roll))      &&
+            (!course || s.course.includes(course))  &&
+            (!batch  || s.batch.includes(batch))    &&
+            (!timing || s.timing.includes(timing));
+        row.style.display = show ? '' : 'none';
     });
+}
+
+function clearLogFilters() {
+    ['lf_name','lf_roll','lf_course','lf_batch','lf_timing'].forEach(function(id) {
+        const el = document.getElementById(id);
+        el.tagName === 'SELECT' ? el.selectedIndex = 0 : el.value = '';
+    });
+    filterLogRows();
 }
 </script>
 
